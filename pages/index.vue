@@ -1,7 +1,8 @@
-<template>
-  <div class="d-flex align-center flex-column"></div>
-</template>
+<template></template>
 
-<script setup></script>
+<script setup lang="ts">
+  import { useWeather } from "/store/useWeather.ts";
+  const weather = useWeather();
+</script>
 
 <style lang="scss" scoped></style>
