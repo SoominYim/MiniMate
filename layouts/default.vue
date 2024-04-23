@@ -64,70 +64,65 @@
   </v-navigation-drawer>
 </template>
 
-<script setup>
-const drawer = ref(false);
-const router = useRouter();
-const route = useRoute();
-const currentTitle = ref("");
+<script setup lang="ts">
+  import { ref, watchEffect } from "vue";
+  import { useRouter, useRoute } from "vue-router";
 
-const menuItems = ref([
-  { icon: "mdi-home", link: "/", title: "홈" },
-  { icon: "mdi-food", link: "/lunch", title: "뭐 먹 지" },
-  { icon: "mdi-coffee", link: "/coffee", title: "커 피 사 줘" },
-  { icon: "mdi-file-code", link: "/pdf", title: "PDF TO HTML" },
-]);
-const aboutItems = ref([
-  { icon: "mdi-github", link: "https://github.com/SoominYim" },
-  { icon: "mdi-instagram", link: "https://www.instagram.com/_soo_min_/" },
-  {
-    icon: "mdi-facebook",
-    link: "https://www.facebook.com/profile.php?id=100002681110982",
-  },
-  {
-    icon: "mdi-alpha-t-circle-outline",
-    link: "https://s-o-o-min.tistory.com/",
-  },
-]);
+  const drawer = ref(false);
+  const router = useRouter();
+  const route = useRoute();
+  const currentTitle = ref<string>("");
 
-const copyText = () => {
-  navigator.clipboard.writeText(window.location.href);
-};
+  const menuItems = ref([
+    { icon: "mdi-home", link: "/", title: "홈" },
+    { icon: "mdi-food", link: "/lunch", title: "뭐 먹 지" },
+    { icon: "mdi-coffee", link: "/coffee", title: "커 피 사 줘" },
+    { icon: "mdi-file-code", link: "/pdf", title: "PDF TO HTML" },
+  ]);
+  const aboutItems = ref([
+    { icon: "mdi-github", link: "https://github.com/SoominYim" },
+    { icon: "mdi-instagram", link: "https://www.instagram.com/_soo_min_/" },
+    {
+      icon: "mdi-facebook",
+      link: "https://www.facebook.com/profile.php?id=100002681110982",
+    },
+    {
+      icon: "mdi-alpha-t-circle-outline",
+      link: "https://s-o-o-min.tistory.com/",
+    },
+  ]);
 
-watchEffect(() => {
-  currentTitle.value = route.path == "/" ? "미니기여어" : menuItems.value.find((v) => v.link === route.path).title;
-});
-</script>
+  const copyText = () => {
+    navigator.clipboard.writeText(window.location.href);
+  };
 
-<script>
-export default {
-  components: {},
-  data() {
-    return {};
-  },
-  computed: {},
-  methods: {},
-};
+  watchEffect(() => {
+    const menuItem = menuItems.value.find((v) => v.link === route.path);
+    if (menuItem) {
+      currentTitle.value = route.path === "/" ? "미니기여어" : menuItem.title;
+    }
+  });
 </script>
 
 <style lang="scss" scoped>
-div {
-  font-family: "UhBeemysen";
-}
+  div {
+    font-family: "UhBeemysen";
+  }
 
-.v-list-item-title {
-  font-size: 1.7rem !important;
-}
-.미니기여어 {
-  font-size: 2.1rem !important;
-}
-.subMenu {
-  font-size: 1.8rem;
-}
-.v-spacer {
-  flex-grow: 0 !important;
-}
+  .v-list-item-title {
+    font-size: 1.7rem !important;
+  }
+  .미니기여어 {
+    font-size: 2.1rem !important;
+  }
+  .subMenu {
+    font-size: 1.8rem;
+  }
+  .v-spacer {
+    flex-grow: 0 !important;
+  }
 
-.v-list-item--active {
-  background-color: rgba(255, 255, 255, 0.1);
-}
+  .v-list-item--active {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
 </style>
