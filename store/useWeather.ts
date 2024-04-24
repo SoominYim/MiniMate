@@ -18,8 +18,8 @@ export const useWeather = defineStore("weather", (asd) => {
     return `${year}년 ${month} ${date}일 ${day} `;
   });
 
-  async function fetchData(dataType) {
-    const fetchUrl = `${url_base.value}${dataType}${process.env.VUE_APP_WEATHER_API_KEY}`;
+  async function fetchData() {
+    const fetchUrl = `${url_base.value}${url_weather}${process.env.VUE_APP_WEATHER_API_KEY}`;
     try {
       const response = await fetch(fetchUrl);
       const results = await response.json();
@@ -29,5 +29,28 @@ export const useWeather = defineStore("weather", (asd) => {
     }
   }
 
-  return { getDate, fetchData, url_weather, url_forecast };
+  async function fetchDataDaily() {
+    const fetchUrl = `${url_base.value}${url_forecast}${process.env.VUE_APP_WEATHER_API_KEY}`;
+    try {
+      const response = await fetch(fetchUrl);
+      const results = await response.json();
+      setDaily(results);
+    } catch (error) {
+      console.error("Error fetching daily weather data:", error);
+    }
+  }
+
+  function setDate(results) {
+    weatherData.value = results;
+  }
+
+  function setDaily(results) {
+    weatherDaily.value = results;
+  }
+
+  return {
+    getDate,
+    fetchData,
+    fetchDataDaily,
+  };
 });
