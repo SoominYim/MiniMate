@@ -20,6 +20,8 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    weatherKey: process.env.VUE_APP_WEATHER_API_KEY,
+    public: {
+      weatherKey: process.env.VUE_APP_WEATHER_API_KEY,
+    },
   },
 });
