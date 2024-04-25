@@ -57,5 +57,6 @@ export const useWeather = defineStore("weather", () => {
     getDate,
     fetchData,
     fetchDataDaily,
+    days,
   };
 });
