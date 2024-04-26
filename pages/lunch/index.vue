@@ -53,7 +53,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import foods from "/data/foods";
 
   const selectedFood = ref("");

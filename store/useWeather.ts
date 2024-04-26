@@ -1,15 +1,15 @@
 import { defineStore } from "pinia";
 
-const url_base = "https://api.openweathermap.org/data/2.5/";
-const url_weather = "weather?q=seoul&units=metric&APPID=";
-const url_forecast = "forecast?q=seoul&units=metric&appid=";
-const months = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
-const days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
-const weatherData = ref({});
-const weatherDaily = ref({});
-
 // 환경 변수 사용 예시
 export const useWeather = defineStore("weather", () => {
+  const url_base = "https://api.openweathermap.org/data/2.5/";
+  const url_weather = "weather?q=seoul&units=metric&APPID=";
+  const url_forecast = "forecast?q=seoul&units=metric&appid=";
+  const months = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+  const days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+  const weatherData = ref({});
+  const weatherDaily = ref({});
+
   const config = useRuntimeConfig();
 
   const getDate = computed(() => {

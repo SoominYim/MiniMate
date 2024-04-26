@@ -16,18 +16,18 @@
             <span class="min">
               {{
                 weather.weatherDaily.list
-                  .filter((v) => new Date().getDate() === new Date(v.dt_txt).getDate())
-                  .map((v) => v.main.temp)
-                  .reduce((min, temp) => Math.min(min, temp), Infinity)
+                  .filter((v: any) => new Date().getDate() === new Date(v.dt_txt).getDate())
+                  .map((v: any) => v.main.temp)
+                  .reduce((min: number, temp: number) => Math.min(min, temp), Infinity)
                   .toFixed(1)
               }}°</span
             >/
             <span class="max">
               {{
                 weather.weatherDaily.list
-                  .filter((v) => new Date().getDate() === new Date(v.dt_txt).getDate())
-                  .map((v) => v.main.temp)
-                  .reduce((max, temp) => Math.max(max, temp), -Infinity)
+                  .filter((v: any) => new Date().getDate() === new Date(v.dt_txt).getDate())
+                  .map((v: any) => v.main.temp)
+                  .reduce((max: number, temp: number) => Math.max(max, temp), -Infinity)
                   .toFixed(1)
               }}°</span
             >
@@ -121,8 +121,8 @@
 </template>
 
 <script setup lang="ts">
-  import { useWeather } from "/store/useWeather.ts";
-  const weather = useWeather();
+  import { useWeather } from "../store/useWeather";
+  const weather: any = useWeather();
   const model = ref(null);
   weather.fetchData();
   weather.fetchDataDaily();
@@ -133,7 +133,7 @@
       const currentDateString = currentTime.toISOString().slice(0, 10);
 
       // 현재 시간 이후의 데이터 인덱스 찾기
-      let startIndex = weather.weatherDaily.list.findIndex((item) => {
+      let startIndex = weather.weatherDaily.list.findIndex((item: any) => {
         const itemDate = new Date(item.dt_txt.replace(/-/g, "/"));
         const itemDateString = itemDate.toISOString().slice(0, 10);
         if (itemDateString > currentDateString) return true;
@@ -153,10 +153,10 @@
   });
 
   const isSnow = computed(() => {
-    return filteredWeatherList.length > 0 && filteredWeatherList[0].weather[0].main === "Snow";
+    return filteredWeatherList.value.length > 0 && filteredWeatherList.value[0].weather[0].main === "Snow";
   });
   const isRain = computed(() => {
-    return filteredWeatherList.length > 0 && filteredWeatherList[0].weather[0].main === "Rain";
+    return filteredWeatherList.value.length > 0 && filteredWeatherList.value[0].weather[0].main === "Rain";
   });
 
   const backgroundStyle = computed(() => {
@@ -167,7 +167,7 @@
       return "linear-gradient(rgba(56, 127, 251, 0.8) 0%, rgba(52, 196, 255, 0.8) 30%, rgba(255, 198, 208, 0.8) 75%, rgba(255, 206, 170, 0.8) 95%)"; // 09:00 ~ 12:00
     } else if (currentTime >= 12 && currentTime < 17) {
       // 비 또는 눈이 오는지 확인
-      if (isSnow === true || isRain === true) {
+      if (isSnow.value === true || isRain.value === true) {
         return "linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.75))"; // 비 또는 눈이 오는 경우
       } else {
         return "linear-gradient(to bottom, rgba(179, 140, 34, 0.75), rgba(236, 95, 24, 0.75))"; // 비 또는 눈이 오지 않는 경우
@@ -180,7 +180,7 @@
   });
 
   const formatDate = computed(() => {
-    return (t, i) => {
+    return (t: number, i: number) => {
       const d = new Date(t);
       return `${i === 0 ? "지금" : d.getHours() + "시"} \n${weather.days[d.getDay()]}`;
     };

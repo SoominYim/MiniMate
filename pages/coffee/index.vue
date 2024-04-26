@@ -33,16 +33,17 @@
 </template>
 
 <script setup lang="ts">
-  const choice = ref("");
-  const people = ref([]);
-  const input = ref("");
+  const choice = ref<string>("");
+  const people = ref<string[]>([]);
+  const input = ref<string>("");
 
-  const isPeopleError = ref(false);
-  const isDuplicationError = ref(false);
-  const isButtonDisabled = ref(false);
+  const isPeopleError = ref<boolean>(false);
+  const isDuplicationError = ref<boolean>(false);
+  const isButtonDisabled = ref<boolean>(false);
 
-  const reTitle = ref("커피 살 사람?");
-  const boxHeight = ref(0);
+  const reTitle = ref<string>("커피 살 사람?");
+  const boxHeight = ref<number>(0);
+
   function addPeople() {
     if (input.value.length < 1) return;
     if (people.value.includes(input.value)) {
@@ -57,7 +58,7 @@
     input.value = "";
   }
 
-  function delPeople(i) {
+  function delPeople(i: number) {
     people.value.splice(i, 1);
   }
 
@@ -73,7 +74,9 @@
       reTitle.value = "다시 뽑기";
       isButtonDisabled.value = false;
     }, 2000);
-    boxHeight.value = peopleBox.getBoundingClientRect().height;
+    if (peopleBox) {
+      boxHeight.value = peopleBox.getBoundingClientRect().height;
+    }
   }
   function rePeople() {
     choice.value = "";
