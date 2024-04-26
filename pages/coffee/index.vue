@@ -33,6 +33,7 @@
 </template>
 
 <script setup lang="ts">
+  import meta from "../../data/meta.js";
   const choice = ref<string>("");
   const people = ref<string[]>([]);
   const input = ref<string>("");
@@ -43,6 +44,8 @@
 
   const reTitle = ref<string>("커피 살 사람?");
   const boxHeight = ref<number>(0);
+
+  useHead(meta.coffee);
 
   function addPeople() {
     if (input.value.length < 1) return;

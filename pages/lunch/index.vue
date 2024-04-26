@@ -55,6 +55,7 @@
 
 <script setup lang="ts">
   import foods from "/data/foods";
+  import meta from "../../data/meta.js";
 
   const selectedFood = ref("");
   const selectedCountry = ref("all");
@@ -63,6 +64,8 @@
   const displayText = ref("종류를 선택하세요");
   const btnTitle = ref("뭐 먹지");
   const isButtonDisabled = ref(false);
+
+  useHead(meta.lunch);
 
   foods.forEach((v, i) => {
     const country = v.country;

@@ -122,8 +122,12 @@
 
 <script setup lang="ts">
   import { useWeather } from "../store/useWeather";
+  import meta from "../data/meta.js";
   const weather: any = useWeather();
   const model = ref(null);
+
+  useHead(meta.home);
+
   weather.fetchData();
   weather.fetchDataDaily();
 

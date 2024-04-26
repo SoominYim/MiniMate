@@ -4,6 +4,16 @@ export default defineNuxtConfig({
   build: {
     transpile: ["vuetify"],
   },
+  app: {
+    head: {
+      meta: [
+        { name: "author", content: "수빡이" },
+        { name: "version", content: "version 1.0" },
+        { property: "og:type", content: "website" },
+        { property: "robots", content: "ALL" },
+      ],
+    },
+  },
   css: ["vuetify/lib/styles/main.sass", "@mdi/font/css/materialdesignicons.min.css"],
   modules: ["@pinia/nuxt"],
   vite: {

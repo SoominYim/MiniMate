@@ -1,7 +1,441 @@
 <template>
-  <div>pdf</div>
+  <div class="pdfContainer" style="text-align: center">
+    <div class="header">
+      <div v-if="!isFile">
+        <input type="radio" name="selectionType" id="choice" v-model="selectionType" value="choice" />
+        <label for="choice">개별 선택</label>
+        <input type="radio" name="selectionType" id="range" v-model="selectionType" value="range" />
+        <label for="range">범위 선택</label>
+      </div>
+      <ul class="tool-bar" style="display: flex; justify-content: center; list-style-type: none; gap: 10px">
+        <li v-if="isFile">
+          <p>{{ fileName }}.pdf</p>
+        </li>
+
+        <li style="margin-right: 5px" v-if="!isFile" class="file_wrap">
+          <input id="file" type="file" accept=".pdf" @change="changeFile" />
+          <label for="file">파일 첨부</label>
+        </li>
+        <li v-if="isFile && selectionType == 'choice'" class="page_wrap">
+          <button @click="page = page > 1 ? page - 1 : page">&lt;</button>
+          <input
+            type="text"
+            :value="page"
+            @keydown.enter="changePage"
+            @focusout="resetPage"
+            @input="numInput"
+            style="width: 50px; text-align: right"
+          />
+          /
+          {{ pages }}
+          <button @click="page = page < pages ? page + 1 : page">&gt;</button>
+        </li>
+        <li v-if="isFile && selectionType == 'range'" class="rangePage_wrap">
+          <span style="margin-right: 5px">total : {{ pages }}</span>
+          <input
+            type="text"
+            id="startPage"
+            :value="startPage"
+            @keydown.enter="updateStartPages"
+            @focusout="resetStartPage"
+            @input="numInput"
+          />
+          /
+          <input
+            type="text"
+            id="lastPage"
+            :value="lastPage"
+            @keydown.enter="updateLastPages"
+            @focusout="resetLastPage"
+            @input="numInput"
+          />
+        </li>
+        <li v-if="isFile" class="scale_wrap">
+          <button @click="scale = scale > 0.5 ? scale - 0.5 : scale">-</button>
+          <span for="magnification">{{ Math.round(scale * 100) }}%</span>
+          <button @click="scale = scale < 4 ? scale + 0.5 : scale">+</button>
+        </li>
+        <li v-if="isFile && selectionType == 'choice'" class="choice_wrap">
+          <div class="select_wrap">
+            <div class="select" :class="{ open: open }" @click="open = !open">
+              {{ selectedPage.length > 0 ? page : "선택 없음" }}
+            </div>
+            <div class="items" v-if="open">
+              <div v-if="selectedPage.length < 1">선택 없음</div>
+              <div class="item" v-for="(p, i) in selectedPage" :key="i" @click="page = p.page">
+                <div>
+                  {{ p.page }}
+                </div>
+                <button @click="deletePage(i)">X</button>
+              </div>
+            </div>
+          </div>
+          <button @click="selectChoicePage">선택</button>
+        </li>
+
+        <li v-if="isFile && selectionType == 'choice'" class="export_wrap">
+          <button @click="exportChoiceHTML">내보내기</button>
+        </li>
+        <li v-if="isFile && selectionType == 'range'" class="export_wrap">
+          <button @click="exportRangeHTML">내보내기</button>
+        </li>
+        <li v-if="isFile && selectionType == 'range'">
+          <span style="color: red"> * 렌더링이 완료되면 눌러주세요 </span>
+        </li>
+      </ul>
+    </div>
+    <div
+      v-if="selectionType == 'range'"
+      class="content"
+      ref="content"
+      :style="{
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+      }"
+    >
+      <div class="pdf_wrap" v-for="page in filteredPages" :key="page">
+        <VuePDF @loaded="onLoaded" ref="vuePDFRef" :scale="scale" :pdf="pdf" :page="page" :text-layer="text_layer">
+          <div class="loading-overlay">
+            <div class="loader"></div></div
+        ></VuePDF>
+      </div>
+    </div>
+    <div v-if="selectionType == 'choice'" class="content" ref="content" :style="{}">
+      <div class="pdf_wrap">
+        <VuePDF @loaded="onLoaded" ref="vuePDFRef" :scale="scale" :pdf="pdf" :page="page" :text-layer="text_layer"
+          ><div class="loading-overlay">
+            <div class="loader"></div>
+          </div>
+        </VuePDF>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script setup></script>
+<script lang="ts" setup>
+  import { ref, computed } from "vue";
+  import { VuePDF, usePDF } from "@tato30/vue-pdf";
+  import JSZip from "jszip";
+  import cssContent from "../../assets/style/pdf/style";
+  import meta from "../../data/meta";
 
-<style lang="scss" scoped></style>
+  const file = ref(null);
+  const { pdf, pages } = usePDF(file);
+
+  const text_layer = ref(true);
+
+  const scale = ref(1);
+  const page = ref(1);
+  const fileName = ref("");
+  const isFile = ref(false);
+  const selectedPage = ref([]);
+  const selectionType = ref("choice");
+
+  // common START
+
+  useHead(meta.pdf);
+
+  document.querySelector("html").style.overflow = "hidden";
+  onUnmounted(() => {
+    document.querySelector("html").style.overflow = "";
+  });
+
+  function changeFile(event) {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      file.value = URL.createObjectURL(selectedFile);
+      fileName.value = selectedFile.name.split(".").slice(0, -1).join(".");
+      isFile.value = true;
+    }
+  }
+
+  const removeBrTags = () => {
+    const observer = new MutationObserver((mutationsList) => {
+      mutationsList.forEach((mutation) => {
+        if (mutation.addedNodes) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.tagName === "BR") {
+              node.remove();
+            }
+          });
+        }
+      });
+    });
+
+    const pdfWrapElements = document.querySelectorAll(".pdf_wrap");
+    pdfWrapElements.forEach((pdfWrapElement) => {
+      observer.observe(pdfWrapElement, { childList: true, subtree: true });
+    });
+  };
+
+  let isCtrl = false;
+  document.addEventListener("keydown", function (e) {
+    if (e.which === 17) {
+      isCtrl = true;
+    }
+    if (e.ctrlKey) {
+      if (e.key === "-") {
+        e.preventDefault();
+        if (scale.value > 1) {
+          scale.value -= 0.5;
+        }
+      } else if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        if (scale.value < 4) {
+          scale.value += 0.5;
+        }
+      }
+    }
+  });
+  document.addEventListener("keyup", function (e) {
+    if (e.which === 17) {
+      isCtrl = false;
+    }
+  });
+
+  document.addEventListener(
+    "wheel",
+    function (e) {
+      if (isCtrl) {
+        e.preventDefault();
+        if (e.deltaY > 0) {
+          if (scale.value > 0.5) {
+            scale.value -= 0.5;
+          }
+        } else if (e.deltaY < 0) {
+          if (scale.value < 4) {
+            scale.value += 0.5;
+          }
+        }
+      }
+    },
+    { passive: false }
+  );
+
+  /**
+   * @param {string} a
+   * @param {string} b
+   * @param {string} c
+   */
+
+  function removeEl(parentNode, a, b, c) {
+    const elementsToRemove = parentNode.querySelectorAll(a);
+    const elementsToRemoveClasses = parentNode.querySelectorAll(b);
+    const elementsToRemoveStyle = parentNode.querySelectorAll(c);
+    elementsToRemoveClasses.forEach((element) => {
+      element.classList = "";
+    });
+    elementsToRemove.forEach((element) => element.parentNode.removeChild(element));
+    elementsToRemoveStyle.forEach((element) => {
+      element.removeAttribute("style");
+    });
+  }
+
+  let wheelTimer; // 휠 이벤트 종료를 감지하기 위한 타이머 변수
+
+  function onLoaded() {
+    removeBrTags();
+    text_layer.value = false;
+
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      text_layer.value = true;
+    }, 500);
+  }
+
+  function numInput(e) {
+    const regex = /[^0-9]/g;
+    if (regex.test(e.target.value)) {
+      e.target.value = e.target.value.replace(regex, "");
+    }
+  }
+
+  // common END
+
+  // 개별 선택 START
+  const startPage = ref(1);
+  const lastPage = ref(1);
+
+  function changePage(e) {
+    e.target.value > pages.value || e.target.value < 1 ? (e.target.value = page.value) : (page.value = +e.target.value);
+  }
+
+  function resetPage(e) {
+    e.target.value = page.value;
+  }
+
+  const filteredPages = computed(() =>
+    Array.from({ length: lastPage.value - startPage.value + 1 }, (_, i) => startPage.value + i)
+  );
+
+  function selectChoicePage() {
+    const a = document.querySelector("canvas");
+    const canvasDataURL = a.toDataURL();
+    const isNewPageUnique = !selectedPage.value.some((item) => item.page === page.value);
+    const contentHTML = document.querySelector("html").cloneNode(true);
+    if (isNewPageUnique) {
+      const clonedHTML = contentHTML.cloneNode(true);
+      selectedPage.value.push({
+        html: clonedHTML,
+        page: page.value,
+        data: canvasDataURL,
+      });
+    }
+
+    selectedPage.value.sort((a, b) => a.page - b.page);
+  }
+
+  function deletePage(i) {
+    selectedPage.value.splice(i, 1);
+  }
+
+  function modifyHTML(contentHTML, page) {
+    const elReSelector =
+      "#header, .header, script, style, .v-overlay-container, link[href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css'], link[href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&display=swap'], noscript, meta";
+    const elReClassSelector = ".v-application";
+    const elReStyleSelector = ".v-main";
+
+    removeEl(contentHTML, elReSelector, elReClassSelector, elReStyleSelector);
+    contentHTML.querySelector("title").textContent = `${fileName.value}_${String(page).padStart(3, "0")}`;
+  }
+
+  function exportChoiceHTML() {
+    const zip = new JSZip(); // ZIP 객체 생성
+    if (selectedPage.value.length < 1) selectChoicePage();
+    selectedPage.value.forEach((v) => {
+      // 페이지 별로 HTML 복제 및 수정
+      const contentHTML = v.html;
+
+      modifyHTML(contentHTML, v.page);
+
+      const linkElement = document.createElement("link");
+      linkElement.rel = "stylesheet";
+      linkElement.href = "./css/common.css";
+      contentHTML.querySelector("head").appendChild(linkElement);
+
+      // 스크립트 직접 추가
+      const scriptContent = `
+            let canvas = document.querySelector("canvas");
+            const context = canvas.getContext("2d");
+            const base_image = new Image();
+            base_image.src = "${v.data}";
+            base_image.onload = function () {
+                canvas.width = base_image.width;
+                canvas.height = base_image.height;
+                context.drawImage(base_image, 0, 0);
+            };
+        `;
+      const scriptFileName = `${fileName.value}_${String(v.page).padStart(3, "0")}.js`;
+      zip.folder("js").file(scriptFileName, scriptContent);
+
+      const scriptElement = document.createElement("script");
+      scriptElement.src = `./js/${scriptFileName}`;
+      contentHTML.querySelector("body").appendChild(scriptElement);
+
+      // Blob 생성 및 ZIP 파일에 추가
+      const blob = new Blob([contentHTML.innerHTML], { type: "text/html" });
+      zip.file(`${fileName.value}_${String(v.page).padStart(3, "0")}.html`, blob);
+    });
+
+    zip.folder("css").file("common.css", cssContent);
+
+    zip.generateAsync({ type: "blob" }).then((resZip) => {
+      const url = URL.createObjectURL(resZip);
+      const aTag = document.createElement("a");
+
+      aTag.download = fileName.value;
+      aTag.href = url;
+      aTag.click();
+    });
+  }
+  // 개별 선택 END
+
+  // 범위 선택 START
+
+  function updateStartPages(e) {
+    if (e.target.value > pages.value || e.target.value < 1 || e.target.value > lastPage.value) {
+      e.target.value = startPage.value;
+    } else {
+      startPage.value = +e.target.value;
+    }
+  }
+  function updateLastPages(e) {
+    if (e.target.value > pages.value || e.target.value < 1 || e.target.value < startPage.value) {
+      e.target.value = lastPage.value;
+    } else {
+      lastPage.value = +e.target.value;
+    }
+  }
+  function resetStartPage(e) {
+    e.target.value = startPage.value;
+  }
+  function resetLastPage(e) {
+    e.target.value = lastPage.value;
+  }
+
+  function exportRangeHTML() {
+    const zip = new JSZip();
+    filteredPages.value.forEach((v, i) => {
+      const contentHTML = document.querySelector("html").cloneNode(true);
+
+      const elReSelector =
+        "#header, .tool-bar, script, style, .pdf_wrap, .v-overlay-container, link[href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css'], link[href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&display=swap'], noscript, meta";
+      const elReClassSelector = ".v-application";
+      const elReStyleSelector = ".v-main";
+
+      removeEl(contentHTML, elReSelector, elReClassSelector, elReStyleSelector);
+
+      const _pdf = document.querySelectorAll(".pdf_wrap");
+      const pdfWrap = _pdf[i].cloneNode(true);
+      contentHTML.querySelector(".content").appendChild(pdfWrap);
+
+      const linkElement = document.createElement("link");
+      linkElement.rel = "stylesheet";
+      linkElement.href = "./css/common.css";
+      contentHTML.querySelector("head").appendChild(linkElement);
+
+      contentHTML.querySelector("title").textContent = `${fileName.value}_${String(v).padStart(3, "0")}`;
+      const canvas = document.querySelectorAll("canvas")[i];
+      const scriptContent = `
+            let canvas = document.querySelector("canvas");
+            const context = canvas.getContext("2d");
+            const base_image = new Image();
+            base_image.src = "${canvas.toDataURL()}";
+            base_image.onload = function () {
+                canvas.width = base_image.width;
+                canvas.height = base_image.height;
+                context.drawImage(base_image, 0, 0);
+            };
+        `;
+      const scriptFileName = `${fileName.value}_${String(v).padStart(3, "0")}.js`;
+      zip.folder("js").file(scriptFileName, scriptContent);
+
+      const scriptElement = document.createElement("script");
+      scriptElement.src = `./js/${scriptFileName}`;
+      contentHTML.querySelector("body").appendChild(scriptElement);
+
+      // Blob 생성 및 ZIP 파일에 추가
+      const blob = new Blob([contentHTML.innerHTML], { type: "text/html" });
+      zip.file(`${fileName.value}_${String(v).padStart(3, "0")}.html`, blob);
+    });
+
+    zip.folder("css").file("common.css", cssContent);
+
+    zip.generateAsync({ type: "blob" }).then((resZip) => {
+      const url = URL.createObjectURL(resZip);
+      const aTag = document.createElement("a");
+
+      aTag.download = fileName.value;
+      aTag.href = url;
+      aTag.click();
+    });
+  }
+
+  // 범위 선택 END
+</script>
+
+<style lang="scss">
+  @import "/assets/style/pdf/pdf.scss";
+  @import "/assets/style/pdf/annotationLayer.css";
+</style>
