@@ -62,7 +62,13 @@
             </div>
             <div class="items" v-if="open">
               <div v-if="selectedPage.length < 1">선택 없음</div>
-              <div class="item" v-for="(p, i) in selectedPage" :key="i" @click="page = p.page">
+              <div
+                class="item"
+                v-if="selectedPage.length > 0"
+                v-for="(p, i) in selectedPage"
+                :key="i"
+                @click="page = p.page"
+              >
                 <div>
                   {{ p.page }}
                 </div>
@@ -120,7 +126,13 @@
   import cssContent from "../../assets/style/pdf/style";
   import meta from "../../data/meta";
 
-  const file = ref(null);
+  interface PageItem {
+    html: Node;
+    page: number;
+    data: string;
+  }
+
+  const file = ref<string | null>(null);
   const { pdf, pages } = usePDF(file);
 
   const text_layer = ref(true);
@@ -129,19 +141,22 @@
   const page = ref(1);
   const fileName = ref("");
   const isFile = ref(false);
-  const selectedPage = ref([]);
+  const selectedPage = ref<Array<PageItem>>([]);
   const selectionType = ref("choice");
+
+  const open = ref(false);
 
   // common START
 
   useHead(meta.pdf);
-
-  document.querySelector("html").style.overflow = "hidden";
-  onUnmounted(() => {
-    document.querySelector("html").style.overflow = "";
-  });
-
-  function changeFile(event) {
+  const HTML: HTMLHtmlElement | null = document.querySelector("html");
+  if (HTML) {
+    HTML.style.overflow = "hidden";
+    onUnmounted(() => {
+      HTML.style.overflow = "";
+    });
+  }
+  function changeFile(event: any) {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
       file.value = URL.createObjectURL(selectedFile);
@@ -155,7 +170,7 @@
       mutationsList.forEach((mutation) => {
         if (mutation.addedNodes) {
           mutation.addedNodes.forEach((node) => {
-            if (node.tagName === "BR") {
+            if (node instanceof Element && node.tagName === "BR") {
               node.remove();
             }
           });
@@ -219,20 +234,22 @@
    * @param {string} c
    */
 
-  function removeEl(parentNode, a, b, c) {
+  function removeEl(parentNode: Element, a: string, b: string, c: string) {
     const elementsToRemove = parentNode.querySelectorAll(a);
     const elementsToRemoveClasses = parentNode.querySelectorAll(b);
     const elementsToRemoveStyle = parentNode.querySelectorAll(c);
     elementsToRemoveClasses.forEach((element) => {
-      element.classList = "";
+      element.className = "";
     });
-    elementsToRemove.forEach((element) => element.parentNode.removeChild(element));
+    elementsToRemove.forEach((element) => {
+      if (element.parentNode) element.parentNode.removeChild(element);
+    });
     elementsToRemoveStyle.forEach((element) => {
       element.removeAttribute("style");
     });
   }
 
-  let wheelTimer; // 휠 이벤트 종료를 감지하기 위한 타이머 변수
+  let wheelTimer: NodeJS.Timeout; // 휠 이벤트 종료를 감지하기 위한 타이머 변수
 
   function onLoaded() {
     removeBrTags();
@@ -244,10 +261,12 @@
     }, 500);
   }
 
-  function numInput(e) {
+  function numInput(e: any) {
     const regex = /[^0-9]/g;
-    if (regex.test(e.target.value)) {
-      e.target.value = e.target.value.replace(regex, "");
+    if (e.target) {
+      if (regex.test(e.target.value)) {
+        e.target.value = e.target.value.replace(regex, "");
+      }
     }
   }
 
@@ -257,11 +276,11 @@
   const startPage = ref(1);
   const lastPage = ref(1);
 
-  function changePage(e) {
+  function changePage(e: any) {
     e.target.value > pages.value || e.target.value < 1 ? (e.target.value = page.value) : (page.value = +e.target.value);
   }
 
-  function resetPage(e) {
+  function resetPage(e: any) {
     e.target.value = page.value;
   }
 
@@ -271,9 +290,11 @@
 
   function selectChoicePage() {
     const a = document.querySelector("canvas");
+    if (!a) return;
     const canvasDataURL = a.toDataURL();
     const isNewPageUnique = !selectedPage.value.some((item) => item.page === page.value);
-    const contentHTML = document.querySelector("html").cloneNode(true);
+    const contentHTML: HTMLElement | null = document.querySelector("html");
+    if (!contentHTML) return;
     if (isNewPageUnique) {
       const clonedHTML = contentHTML.cloneNode(true);
       selectedPage.value.push({
@@ -286,18 +307,20 @@
     selectedPage.value.sort((a, b) => a.page - b.page);
   }
 
-  function deletePage(i) {
+  function deletePage(i: number) {
     selectedPage.value.splice(i, 1);
   }
 
-  function modifyHTML(contentHTML, page) {
+  function modifyHTML(contentHTML: Element, page: number) {
     const elReSelector =
-      "#header, .header, script, style, .v-overlay-container, link[href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css'], link[href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&display=swap'], noscript, meta";
+      "#header, .header, script, style, .v-overlay-container,link:not([href='./css/common.css']), noscript, meta, #teleports, #vue-inspector-container, #nuxt-devtools-container, .v-toolbar, .v-navigation-drawer";
     const elReClassSelector = ".v-application";
     const elReStyleSelector = ".v-main";
 
     removeEl(contentHTML, elReSelector, elReClassSelector, elReStyleSelector);
-    contentHTML.querySelector("title").textContent = `${fileName.value}_${String(page).padStart(3, "0")}`;
+
+    const titleElement = contentHTML.querySelector("title");
+    if (titleElement) titleElement.textContent = `${fileName.value}_${String(page).padStart(3, "0")}`;
   }
 
   function exportChoiceHTML() {
@@ -305,14 +328,17 @@
     if (selectedPage.value.length < 1) selectChoicePage();
     selectedPage.value.forEach((v) => {
       // 페이지 별로 HTML 복제 및 수정
-      const contentHTML = v.html;
+      const contentHTML = v.html as Element;
 
       modifyHTML(contentHTML, v.page);
 
       const linkElement = document.createElement("link");
       linkElement.rel = "stylesheet";
       linkElement.href = "./css/common.css";
-      contentHTML.querySelector("head").appendChild(linkElement);
+      const HEAD = contentHTML.querySelector("head");
+      if (HEAD) {
+        HEAD.appendChild(linkElement);
+      }
 
       // 스크립트 직접 추가
       const scriptContent = `
@@ -327,18 +353,27 @@
             };
         `;
       const scriptFileName = `${fileName.value}_${String(v.page).padStart(3, "0")}.js`;
-      zip.folder("js").file(scriptFileName, scriptContent);
-
+      const zipJsFolder = zip.folder("js");
+      if (zipJsFolder) {
+        zipJsFolder.file(scriptFileName, scriptContent);
+      }
       const scriptElement = document.createElement("script");
       scriptElement.src = `./js/${scriptFileName}`;
-      contentHTML.querySelector("body").appendChild(scriptElement);
+
+      const BODY = contentHTML.querySelector("body");
+
+      if (BODY) {
+        BODY.appendChild(scriptElement);
+      }
 
       // Blob 생성 및 ZIP 파일에 추가
       const blob = new Blob([contentHTML.innerHTML], { type: "text/html" });
       zip.file(`${fileName.value}_${String(v.page).padStart(3, "0")}.html`, blob);
     });
-
-    zip.folder("css").file("common.css", cssContent);
+    const zipCssFolder = zip.folder("css");
+    if (zipCssFolder) {
+      zipCssFolder.file("common.css", cssContent);
+    }
 
     zip.generateAsync({ type: "blob" }).then((resZip) => {
       const url = URL.createObjectURL(resZip);
@@ -353,49 +388,50 @@
 
   // 범위 선택 START
 
-  function updateStartPages(e) {
+  function updateStartPages(e: any) {
     if (e.target.value > pages.value || e.target.value < 1 || e.target.value > lastPage.value) {
       e.target.value = startPage.value;
     } else {
       startPage.value = +e.target.value;
     }
   }
-  function updateLastPages(e) {
+  function updateLastPages(e: any) {
     if (e.target.value > pages.value || e.target.value < 1 || e.target.value < startPage.value) {
       e.target.value = lastPage.value;
     } else {
       lastPage.value = +e.target.value;
     }
   }
-  function resetStartPage(e) {
+  function resetStartPage(e: any) {
     e.target.value = startPage.value;
   }
-  function resetLastPage(e) {
+  function resetLastPage(e: any) {
     e.target.value = lastPage.value;
   }
 
   function exportRangeHTML() {
     const zip = new JSZip();
     filteredPages.value.forEach((v, i) => {
-      const contentHTML = document.querySelector("html").cloneNode(true);
-
-      const elReSelector =
-        "#header, .tool-bar, script, style, .pdf_wrap, .v-overlay-container, link[href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css'], link[href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&display=swap'], noscript, meta";
-      const elReClassSelector = ".v-application";
-      const elReStyleSelector = ".v-main";
-
-      removeEl(contentHTML, elReSelector, elReClassSelector, elReStyleSelector);
+      const HTML = document.querySelector("html");
+      if (!HTML) return;
+      const contentHTML = HTML.cloneNode(true) as Element;
+      modifyHTML(contentHTML, v);
 
       const _pdf = document.querySelectorAll(".pdf_wrap");
       const pdfWrap = _pdf[i].cloneNode(true);
-      contentHTML.querySelector(".content").appendChild(pdfWrap);
+
+      console.log(pdfWrap);
+      const contentNode = contentHTML.querySelector(".content");
+      if (contentNode) contentNode.appendChild(pdfWrap);
 
       const linkElement = document.createElement("link");
       linkElement.rel = "stylesheet";
       linkElement.href = "./css/common.css";
-      contentHTML.querySelector("head").appendChild(linkElement);
+      const HEAD = contentHTML.querySelector("head");
+      if (HEAD) {
+        HEAD.appendChild(linkElement);
+      }
 
-      contentHTML.querySelector("title").textContent = `${fileName.value}_${String(v).padStart(3, "0")}`;
       const canvas = document.querySelectorAll("canvas")[i];
       const scriptContent = `
             let canvas = document.querySelector("canvas");
@@ -409,19 +445,26 @@
             };
         `;
       const scriptFileName = `${fileName.value}_${String(v).padStart(3, "0")}.js`;
-      zip.folder("js").file(scriptFileName, scriptContent);
-
+      const zipJsFolder = zip.folder("js");
+      if (zipJsFolder) {
+        zipJsFolder.file(scriptFileName, scriptContent);
+      }
       const scriptElement = document.createElement("script");
       scriptElement.src = `./js/${scriptFileName}`;
-      contentHTML.querySelector("body").appendChild(scriptElement);
+      const BODY = contentHTML.querySelector("body");
 
+      if (BODY) {
+        BODY.appendChild(scriptElement);
+      }
       // Blob 생성 및 ZIP 파일에 추가
       const blob = new Blob([contentHTML.innerHTML], { type: "text/html" });
       zip.file(`${fileName.value}_${String(v).padStart(3, "0")}.html`, blob);
     });
 
-    zip.folder("css").file("common.css", cssContent);
-
+    const zipCssFolder = zip.folder("css");
+    if (zipCssFolder) {
+      zipCssFolder.file("common.css", cssContent);
+    }
     zip.generateAsync({ type: "blob" }).then((resZip) => {
       const url = URL.createObjectURL(resZip);
       const aTag = document.createElement("a");

@@ -13,7 +13,7 @@
             id="all"
             value="all"
             @click="radioChange($event)"
-            checked="checked"
+            checked
           />
           <label class="radio-label" for="all">전체</label>
           <div class="spinner"></div>
@@ -54,14 +54,14 @@
 </template>
 
 <script setup lang="ts">
-  import foods from "/data/foods";
+  import foods from "../../data/foods.js";
   import meta from "../../data/meta.js";
 
-  const selectedFood = ref("");
+  const selectedFood = ref<string | null>("");
   const selectedCountry = ref("all");
-  const groupedIndexes = {};
+  const groupedIndexes: Record<string, number[]> = {};
 
-  const displayText = ref("종류를 선택하세요");
+  const displayText = ref<string | null>("종류를 선택하세요");
   const btnTitle = ref("뭐 먹지");
   const isButtonDisabled = ref(false);
 
@@ -72,9 +72,8 @@
     groupedIndexes[country] = [];
     groupedIndexes[country].push(i);
   });
-
-  function radioChange(event) {
-    selectedCountry.value = event.target.value;
+  function radioChange(e: any) {
+    selectedCountry.value = e.target.value;
   }
 
   /**
@@ -83,7 +82,7 @@
    * 랜덤으로 뽑을 object
    */
 
-  function getRandomFood(f) {
+  function getRandomFood(f: { food: string }[]) {
     if (f.length === 0) return null;
     const randomIndex = Math.floor(Math.random() * f.length);
     return f[randomIndex].food;
