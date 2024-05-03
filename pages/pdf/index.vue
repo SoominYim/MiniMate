@@ -125,6 +125,10 @@
   import JSZip from "jszip";
   import cssContent from "../../assets/style/pdf/style";
   import meta from "../../data/meta";
+  import * as PDFJS from "../../node_modules/pdfjs-dist";
+  import * as pdfjsWorker from "../../node_modules/pdfjs-dist/build/pdf.worker.min.js";
+
+  PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
   interface PageItem {
     html: Node;
