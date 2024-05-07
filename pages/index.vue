@@ -1,5 +1,5 @@
 <template>
-  <weather-star v-if="new Date().getHours() >= 20 || new Date().getHours() < 6"></weather-star>
+  <weather-star v-if="isNight"></weather-star>
   <div class="container h-100" :style="{ background: backgroundStyle }">
     <weather-rain v-if="isRain" />
     <weather-snow v-if="isSnow" />
@@ -154,6 +154,13 @@
     } else {
       return [];
     }
+  });
+
+  const isNight = ref(false);
+
+  onMounted(() => {
+    const currentHour = new Date().getHours();
+    isNight.value = currentHour >= 20 || currentHour < 6;
   });
 
   const isSnow = computed(() => {
