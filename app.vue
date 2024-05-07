@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <NuxtLayout />
-    <v-main :style="{ backgroundColor: $route.path === '/pdf' ? '#ccc' : 'inherit' }">
+    <v-main>
       <NuxtPage />
     </v-main>
   </v-app>
