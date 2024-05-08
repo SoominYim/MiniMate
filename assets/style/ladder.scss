@@ -1,10 +1,10 @@
 .container {
   display: flex;
   justify-content: center;
+  padding: 50px 0 0 0;
   .people_view {
     display: flex;
     flex-direction: column;
-    padding: 50px 0 100px 0;
     gap: 30px;
     text-align: center;
     .people_wrap {
@@ -42,13 +42,46 @@
         }
       }
     }
+    .setting_wrap {
+      position: relative;
+      .setting_error {
+        position: absolute;
+        top: calc(50% - -36px / 2);
+        left: calc(50% - 111px / 2);
+        font-size: 16px;
+        color: red;
+      }
+      & > span {
+        position: relative;
+        left: -70px;
+        font-size: 25px;
+      }
+      .btn_area {
+        position: absolute;
+        top: 0;
+        right: 18px;
+        display: flex;
+        gap: 6px;
+
+        button {
+          border: 2px #999 solid;
+          border-radius: 5px;
+          font-size: 18px;
+          width: 66px;
+          height: 25px;
+          span {
+            font-size: 15px;
+          }
+        }
+      }
+    }
     .start_btn {
       border: 3px #333 solid;
       background-color: #41b883;
       border-radius: 10px;
       font-size: 20px;
       margin: 0 auto;
-      width: 200px;
+      width: 100px;
       height: 60px;
     }
     .input_wrap {
@@ -85,7 +118,6 @@
     display: flex;
     flex-direction: column;
     width: 90%;
-    padding: 50px 0 100px 0;
     gap: 30px;
     text-align: center;
     .ladder_wrap {
