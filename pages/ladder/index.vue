@@ -21,7 +21,7 @@
         <div class="setting_error" v-if="settingError">내기설정을 해주세요</div>
         <div class="btn_area">
           <button class="reset_btn" @click="resetInput"><span class="mdi mdi-restore"></span>초기화</button>
-          <button class="auto_btn" @click="autoInput">자동내기</button>
+          <button class="auto_btn" @click="autoInput(settingError)">자동내기</button>
         </div>
       </div>
       <div class="input_wrap">
@@ -41,33 +41,46 @@
     <div v-else class="ladder_view">
       <span style="font-size: 26px; margin: -30px 0 20px 0">이름과 당첨항목을 적어주세요</span>
       <div class="ladder_wrap">
-        <div v-for="(v, i) in inputValue" class="ladderItem_wrap" :key="i">{{ v }}</div>
+        <div class="avatar_wrap">
+          <div
+            class="avatar"
+            :style="{
+              backgroundColor: `rgba(${Math.floor(Math.random() * 255) + 1},${Math.floor(Math.random() * 255) + 1},${
+                Math.floor(Math.random() * 255) + 1
+              })`,
+            }"
+            v-for="(_, i) in inputValue"
+            :key="i"
+          >
+            {{ i }}
+          </div>
+        </div>
+        <ladder-canvas></ladder-canvas>
+        <div class="ladderItem_wrap">
+          <div v-for="(v, i) in inputValue" :key="i" class="result">
+            {{ v }}
+          </div>
+        </div>
       </div>
       <button @click="ladderStart = false">돌아가기</button>
     </div>
   </div>
 </template>
 <script setup>
+  import { useLadder } from "../../store/useLadder";
+  import { storeToRefs } from "pinia";
   import meta from "../../data/meta.js";
-  const count = ref(3);
+  const store = useLadder();
+  const { count, inputValue } = storeToRefs(store);
+  const { countUp, countDown, autoInput } = useLadder();
   const ladderStart = ref(false);
-  const inputValue = ref(["", "", ""]);
   const settingError = ref(false);
 
   useHead(meta.ladder);
 
-  function countDown() {
-    inputValue.value.pop();
-    count.value--;
-  }
-  function countUp() {
-    inputValue.value.push("");
-    count.value++;
-  }
-
   function updateInput(v, i) {
-    inputValue.value[i] = v;
-    if (!inputValue.value.some((v) => v == "")) settingError.value = false;
+    inputValue[i] = v;
+    if (!inputValue.some((v) => v == "")) settingError.value = false;
   }
 
   function resetInput() {
@@ -76,17 +89,12 @@
       input.value = "";
       inputValue.value[i] = "";
     });
-  }
-
-  function autoInput() {
-    inputValue.value.forEach((_, i) => (inputValue.value[i] = "꽝"));
-    const randomIndex = Math.floor(Math.random() * inputValue.value.length);
-    inputValue.value[randomIndex] = "당첨";
+    settingError.value = false;
   }
 
   function ladderStarted() {
     if (ladderStart.value == true) return;
-    if (inputValue.value.some((v) => v == "")) {
+    if (inputValue.some((v) => v == "")) {
       settingError.value = true;
       return;
     }

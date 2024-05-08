@@ -115,23 +115,29 @@
     }
   }
   .ladder_view {
-    display: flex;
-    flex-direction: column;
-    width: 90%;
+    width: 700px;
     gap: 30px;
     text-align: center;
     .ladder_wrap {
-      width: auto;
-      height: auto;
       border: 3px #888 solid;
       border-radius: 10px;
       padding: 20px;
       white-space: nowrap;
       overflow-x: auto;
+      .avatar_wrap {
+        .avatar {
+          display: inline-block;
+          width: 50px;
+          height: 50px;
+        }
+      }
       .ladderItem_wrap {
-        display: inline-block;
-        &:not(&:last-child) {
-          margin-right: 20px;
+        .result {
+          display: inline-block;
+          width: 50px;
+          height: 50px;
+          border: 2px #41b883 solid;
+          border-radius: 50%;
         }
       }
     }
