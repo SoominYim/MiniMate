@@ -77,6 +77,7 @@
     { icon: "mdi-home", link: "/", title: "홈" },
     { icon: "mdi-food", link: "/lunch", title: "뭐 먹 지" },
     { icon: "mdi-coffee", link: "/coffee", title: "커 피 사 줘" },
+    { icon: "mdi-ladder", link: "/ladder", title: "사 다 리 타 기" },
   ]);
   const aboutItems = ref([
     { icon: "mdi-github", link: "https://github.com/SoominYim" },

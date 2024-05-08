@@ -11,7 +11,7 @@ const meta = {
       { name: "thanks-to", content: "홈, 날씨" },
       { property: "og:title", content: "홈 페이지 - 미니기여어" },
       { property: "og:description", content: "날씨, 커피내기, 점심뽑기. PDF TO HTML을 제공하는 미니기여어" },
-      { property: "og:url", content: "https://mini-mate.vercel.app/" },
+      { property: "og:url", content: "https://mini-mate-s.vercel.app/" },
     ],
   },
   lunch: {
@@ -27,7 +27,7 @@ const meta = {
       { property: "og:type", content: "website" },
       { property: "og:title", content: "점심뽑기" },
       { property: "og:description", content: "점심 뽑기, 점심 랜덤 뽑기" },
-      { property: "og:url", content: "https://mini-mate.vercel.app/lunch" },
+      { property: "og:url", content: "https://mini-mate-s.vercel.app/lunch" },
     ],
   },
   coffee: {
@@ -43,23 +43,23 @@ const meta = {
       { property: "og:type", content: "website" },
       { property: "og:title", content: "커피 뽑기" },
       { property: "og:description", content: "커피 사는 사람, 커피 내기" },
-      { property: "og:url", content: "https://mini-mate.vercel.app/coffee" },
+      { property: "og:url", content: "https://mini-mate-s.vercel.app/coffee" },
     ],
   },
-  pdf: {
-    title: "PDF TO HTML",
+  ladder: {
+    title: "사다리타기",
     meta: [
       {
         name: "description",
-        content: "PDF TO HTML, PDF TEXT 변환",
+        content: "사다리타기, 사다리게임, 사다리뽑기",
       },
-      { name: "keywords", content: "PDF, 변환, PDF TO HTML, pdf.js, vue-pdf-js" },
-      { name: "subject", content: "PDF TO HTML" },
-      { name: "thanks-to", content: "PDF TO HTML" },
+      { name: "keywords", content: "사다리타기, 사다리게임, 사다리뽑기" },
+      { name: "subject", content: "사다리게임" },
+      { name: "thanks-to", content: "사다리타기" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "PDF TO HTML" },
-      { property: "og:description", content: "PDF 변환 HTML, PDF TO HTML" },
-      { property: "og:url", content: "https://mini-mate.vercel.app/pdf" },
+      { property: "og:title", content: "사다리타기" },
+      { property: "og:description", content: "사다리타기" },
+      { property: "og:url", content: "https://mini-mate-s.vercel.app/ladder" },
     ],
   },
 };

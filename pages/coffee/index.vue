@@ -5,7 +5,14 @@
       class="input-box"
       :style="{ height: '50px', display: 'flex', justifyContent: `center`, alignItems: 'center', gap: `20px` }"
     >
-      <input v-if="choice === ''" type="text" class="peopleInput" v-model="input" @keydown.enter="addPeople" />
+      <input
+        v-if="choice === ''"
+        type="text"
+        maxlength="8"
+        class="peopleInput"
+        v-model="input"
+        @keydown.enter="addPeople"
+      />
       <button v-if="choice === ''" @click="addPeople" :style="{ fontSize: `24px` }">추가</button>
     </div>
     <div v-if="choice === ''" ref="peopleBox" class="people-box">

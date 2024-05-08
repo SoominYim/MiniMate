@@ -1,0 +1,107 @@
+.container {
+  display: flex;
+  justify-content: center;
+  .people_view {
+    display: flex;
+    flex-direction: column;
+    padding: 50px 0 100px 0;
+    gap: 30px;
+    text-align: center;
+    .people_wrap {
+      width: 50%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 20px;
+      width: 100%;
+      .count_wrap {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        & > div {
+          width: 60px;
+          font-size: 40px;
+        }
+      }
+      .count_btn {
+        width: 50px;
+        height: 50px;
+        border: 3px #41b883 solid;
+        border-radius: 50%;
+        &.disabled {
+          border: 3px #888 solid;
+          pointer-events: none;
+          span {
+            color: #888;
+          }
+        }
+        span {
+          font-size: 44px;
+          color: #41b883;
+        }
+      }
+    }
+    .start_btn {
+      border: 3px #333 solid;
+      background-color: #41b883;
+      border-radius: 10px;
+      font-size: 20px;
+      margin: 0 auto;
+      width: 200px;
+      height: 60px;
+    }
+    .input_wrap {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px 0;
+      padding-right: 25px;
+      .input_item {
+        display: flex;
+        label {
+          display: flex;
+          justify-content: center;
+          flex-direction: column;
+          font-size: 20px;
+          font-weight: bold;
+          width: 30px;
+          cursor: pointer;
+        }
+        input {
+          display: block;
+          border: 3px #41b883 solid;
+          width: 70px;
+          height: 40px;
+          border-radius: 5px;
+          padding: 10px;
+          font-size: 16px;
+          text-align: center;
+          outline: none;
+        }
+      }
+    }
+  }
+  .ladder_view {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    padding: 50px 0 100px 0;
+    gap: 30px;
+    text-align: center;
+    .ladder_wrap {
+      width: auto;
+      height: auto;
+      border: 3px #888 solid;
+      border-radius: 10px;
+      padding: 20px;
+      white-space: nowrap;
+      overflow-x: auto;
+      .ladderItem_wrap {
+        display: inline-block;
+        &:not(&:last-child) {
+          margin-right: 20px;
+        }
+      }
+    }
+  }
+}
