@@ -60,7 +60,9 @@
             {{ i }}
           </div>
         </div>
-        <ladder-canvas></ladder-canvas>
+        <div class="canvas_wrap" :style="{ width: 50 * count + 'px' }">
+          <ladder-canvas></ladder-canvas>
+        </div>
         <div class="ladderItem_wrap">
           <div v-for="(v, i) in inputValue" :key="i" class="result">
             {{ v }}
