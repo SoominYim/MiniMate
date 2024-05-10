@@ -1,30 +1,28 @@
 <template>
-  <canvas id="canvas" style="width: 100%; height: 330px"></canvas>
+  <canvas id="canvas" :style="{ width: 50 * count + 'px', height: '330px' }"></canvas>
 </template>
 <script lang="ts" setup>
+  import { useLadder } from "../../store/useLadder";
+  import { storeToRefs } from "pinia";
+  const store = useLadder();
+  const { count } = storeToRefs(store);
   onMounted(() => {
-    function draw(f: any) {
-      var canvas = document.getElementById("canvas") as HTMLCanvasElement;
-      var ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.beginPath();
-        //새로운 경로 만들기
-        ctx.moveTo(0, 0);
-        //시작위치 - 처음 점을 찍기
-        ctx.lineTo(0, 100);
-        //선그리기 - 다음점
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(260, 100);
-        ctx.lineTo(260, 350);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(250, 250);
-        ctx.lineTo(300, 250);
-        ctx.stroke();
-      }
-      console.log(f);
+    var canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    var ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio;
+
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(12.5 * (2 * 12 - 1), 0);
+      ctx.lineTo(12.5 * (2 * 12 - 1), 330);
+      ctx.strokeStyle = "#999";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
     }
   });
 </script>
-<style lang=""></style>
+<style scoped>
+  canvas {
+  }
+</style>

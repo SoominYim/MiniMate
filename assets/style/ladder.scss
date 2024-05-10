@@ -1,7 +1,7 @@
 .container {
-  display: flex;
   justify-content: center;
   padding: 50px 0 0 0;
+  overflow: hidden;
   .people_view {
     display: flex;
     flex-direction: column;
@@ -115,16 +115,22 @@
     }
   }
   .ladder_view {
-    width: 700px;
+    margin: 0 auto;
+    padding: 0 3%;
+    max-width: 760px;
+    min-width: 300px;
     gap: 30px;
     text-align: center;
     .ladder_wrap {
+      position: relative;
       border: 3px #888 solid;
       border-radius: 10px;
       padding: 20px;
       white-space: nowrap;
       overflow-x: auto;
       .avatar_wrap {
+        margin: 0 auto;
+        width: fit-content;
         .avatar {
           display: inline-block;
           width: 50px;
