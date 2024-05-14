@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
 
 export const useLadder = defineStore("ladder", () => {
-  const count = ref(10);
-  const inputValue = ref(["", "", "", "", "", "", "", "", "", ""]);
+  const count = ref(12);
+  const inputValue = ref(["", "", "", "", "", "", "", "", "", "", "", ""]);
   const settingError = ref(false);
 
   function countDown() {
