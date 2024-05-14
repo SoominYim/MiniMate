@@ -56,6 +56,7 @@
             }"
             v-for="(_, i) in inputValue"
             :key="i"
+            @click="selected(i)"
           >
             {{ i }}
           </div>
@@ -78,11 +79,9 @@
   import { storeToRefs } from "pinia";
   import meta from "../../data/meta.js";
   const store = useLadder();
-  const { count, inputValue, settingError } = storeToRefs(store);
-  const { countUp, countDown } = useLadder();
+  const { count, inputValue, settingError, selectedAvatar } = storeToRefs(store);
+  const { countUp, countDown, selected } = useLadder();
   const ladderStart = ref(true);
-
-  useHead(meta.ladder);
 
   function updateInput(v, i) {
     inputValue.value[i] = v;

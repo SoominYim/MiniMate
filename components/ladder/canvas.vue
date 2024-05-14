@@ -1,12 +1,13 @@
 <template>
-  <canvas id="canvas" width="1920" height="1080" :style="{ width: '600px', height: '330px' }"></canvas>
+  <canvas id="q_canvas" width="1920" height="1080" :style="{ width: '600px', height: '330px' }"></canvas>
+  <canvas id="r_canvas" width="1920" height="1080" :style="{ width: '600px', height: '330px' }"></canvas>
 </template>
 
 <script lang="ts" setup>
   import { useLadder } from "../../store/useLadder";
   import { storeToRefs } from "pinia";
   const store = useLadder();
-  const { count } = storeToRefs(store);
+  const { count, selectedAvatar } = storeToRefs(store);
 
   function getRandomNumber(min: number, max: number) {
     const base = Math.floor(Math.random() * ((max - min) / 14)) * 14;
@@ -19,7 +20,7 @@
     for (let i = 0; i <= count.value - 1; i++) {
       ctx.beginPath();
       ctx.moveTo(80 + i * 160, 0);
-      ctx.lineTo(80 + i * 160, 1076);
+      ctx.lineTo(80 + i * 160, 1080);
       ctx.stroke();
       ctx.beginPath();
     }
@@ -47,10 +48,12 @@
     //   });
     // }
   }
-
+  onUpdated(() => {
+    console.log(selectedAvatar.value);
+  });
   onMounted(() => {
-    var canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    var ctx = canvas.getContext("2d");
+    var q_canvas = document.getElementById("q_canvas") as HTMLCanvasElement;
+    var ctx = q_canvas.getContext("2d");
     if (ctx) {
       ladder_draw(ctx);
     }
