@@ -10,14 +10,14 @@
   const { count, selectedAvatar, isPlay } = storeToRefs(store);
 
   let lines: { x1: number; y1: number; x2: number; y2: number; end: boolean }[] = [];
+  let h_lines: { x1: number; y1: number; x2: number; y2: number }[][] = [];
 
   function getRandomNumber(min: number, max: number) {
-    const base = Math.floor(Math.random() * ((max - min) / 14)) * 14;
-    return base + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   function getLines(ctx: any) {
-    for (let i = 0; i <= count.value - 1; i++) {
+    for (let i = 0; i < count.value; i++) {
       lines.push({
         x1: 80 + i * 160,
         y1: 0,
@@ -26,14 +26,43 @@
         end: false,
       });
     }
+    for (let i = 0; i < count.value - 1; i++) {
+      const lineCount = Math.floor(Math.random() * 3) + 2;
+      h_lines.push([]);
+      for (let j = 0; j < lineCount; j++) {
+        const randomY = 120 + Math.floor(Math.random() * 9) * 108;
+        h_lines[i].push({
+          x1: 80 + i * 160,
+          y1: randomY,
+          x2: 80 + (i + 1) * 160,
+          y2: randomY,
+        });
+      }
+    }
     ctx.lineWidth = 30;
     ctx.strokeStyle = "#fff";
+
     for (let line of lines) {
       ctx.beginPath();
       ctx.moveTo(line.x1, line.y1);
       ctx.lineTo(line.x2, line.y2);
       ctx.stroke();
+      ctx.beginPath();
     }
+    h_lines.forEach((v) => {
+      for (let line of v) {
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+        ctx.stroke();
+        ctx.beginPath();
+      }
+    });
+
+    ctx.lineWidth = 30;
+    ctx.strokeStyle = "#c34";
+
+    console.log(h_lines);
   }
 
   function draw_result(ctx: any, x1: number, y1: number, x2: number, y2: number, end: boolean) {
