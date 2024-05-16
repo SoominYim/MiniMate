@@ -84,7 +84,7 @@
   const ladderStart = ref(true);
 
   function updateInput(v, i) {
-    inputValue.value[i] = v;
+    inputValue.value[i] = v.replaceAll(" ", "");
     if (!inputValue.value.some((v) => v == "")) settingError.value = false;
   }
 
