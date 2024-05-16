@@ -7,9 +7,9 @@
   import { useLadder } from "../../store/useLadder";
   import { storeToRefs } from "pinia";
   const store = useLadder();
-  const { count, selectedAvatar } = storeToRefs(store);
+  const { count, selectedAvatar, isPlay } = storeToRefs(store);
 
-  let lines: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  let lines: { x1: number; y1: number; x2: number; y2: number; end: boolean }[] = [];
 
   function getRandomNumber(min: number, max: number) {
     const base = Math.floor(Math.random() * ((max - min) / 14)) * 14;
@@ -23,6 +23,7 @@
         y1: 0,
         x2: 80 + i * 160,
         y2: 1080,
+        end: false,
       });
     }
     ctx.lineWidth = 30;
@@ -35,25 +36,55 @@
     }
   }
 
+  function draw_result(ctx: any, x1: number, y1: number, x2: number, y2: number, end: boolean) {
+    if (!end) {
+      let now = 0;
+      let ani: any;
+      const drawing = () => {
+        ctx.lineWidth = 30;
+        ctx.strokeStyle = "#ff2d";
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, now);
+        ctx.stroke();
+        now += 10;
+        ani = requestAnimationFrame(drawing);
+        if (now > 2) {
+          isPlay.value = true;
+        }
+        if (now >= y2 + 10) {
+          isPlay.value = false;
+          end = true;
+          cancelAnimationFrame(ani);
+        }
+      };
+      drawing();
+    }
+  }
+
   watch(selectedAvatar, (newValue, oldValue) => {
-    console.log(newValue, oldValue);
+    const r_canvas = document.getElementById("r_canvas") as HTMLCanvasElement;
+    const ctx = r_canvas.getContext("2d");
+    const _l = lines[newValue];
+    if (ctx) {
+      draw_result(ctx, _l.x1, _l.y1, _l.x2, _l.y2, _l.end);
+    }
   });
 
   onMounted(() => {
-    var canvas = document.querySelectorAll("canvas");
-    var q_canvas = document.getElementById("q_canvas") as HTMLCanvasElement;
-    var r_canvas = document.getElementById("r_canvas") as HTMLCanvasElement;
-    const dpr = window.devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = document.querySelectorAll("canvas");
+    const q_canvas = document.getElementById("q_canvas") as HTMLCanvasElement;
 
-    var q_ctx = q_canvas.getContext("2d");
+    var ctx = q_canvas.getContext("2d");
 
     canvas.forEach((v) => {
-      v.width = 1920 * dpr;
-      v.height = 1080 * dpr;
+      v.width = 1920;
+      v.height = 1080;
     });
 
-    if (q_ctx) {
-      getLines(q_ctx);
+    if (ctx) {
+      getLines(ctx);
     }
   });
 </script>

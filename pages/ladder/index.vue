@@ -61,7 +61,7 @@
             {{ i }}
           </div>
         </div>
-        <div class="canvas_wrap" :style="{ width: 50 * count + 'px', left: `calc(50% - ${50 * count}px /2 )` }">
+        <div class="canvas_wrap" :style="{ width: 50 * count + 'px' }">
           <ladder-canvas></ladder-canvas>
         </div>
         <div class="ladderItem_wrap">
@@ -79,7 +79,7 @@
   import { storeToRefs } from "pinia";
   import meta from "../../data/meta.js";
   const store = useLadder();
-  const { count, inputValue, settingError } = storeToRefs(store);
+  const { count, inputValue, settingError, isPlay } = storeToRefs(store);
   const { countUp, countDown, getSelected } = useLadder();
   const ladderStart = ref(true);
 
