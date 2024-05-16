@@ -15,9 +15,8 @@ export const useLadder = defineStore("ladder", () => {
     inputValue.value.push("");
     count.value++;
   }
-  function selected(i: number) {
+  function getSelected(i: number) {
     selectedAvatar.value = i;
-    console.log(i);
   }
   return {
     count,
@@ -26,6 +25,6 @@ export const useLadder = defineStore("ladder", () => {
     selectedAvatar,
     countDown,
     countUp,
-    selected,
+    getSelected,
   };
 });

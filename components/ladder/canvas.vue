@@ -1,6 +1,6 @@
 <template>
-  <canvas id="q_canvas" width="1920" height="1080" :style="{ width: '600px', height: '330px' }"></canvas>
-  <canvas id="r_canvas" width="1920" height="1080" :style="{ width: '600px', height: '330px' }"></canvas>
+  <canvas id="q_canvas" :style="{ width: '600px', height: '330px' }"></canvas>
+  <canvas id="r_canvas" :style="{ width: '600px', height: '330px' }"></canvas>
 </template>
 
 <script lang="ts" setup>
@@ -9,57 +9,58 @@
   const store = useLadder();
   const { count, selectedAvatar } = storeToRefs(store);
 
+  let lines: { x1: number; y1: number; x2: number; y2: number }[] = [];
+
   function getRandomNumber(min: number, max: number) {
     const base = Math.floor(Math.random() * ((max - min) / 14)) * 14;
     return base + min;
   }
 
-  function ladder_draw(ctx: any) {
+  function getLines(ctx: any) {
+    for (let i = 0; i <= count.value - 1; i++) {
+      lines.push({
+        x1: 80 + i * 160,
+        y1: 0,
+        x2: 80 + i * 160,
+        y2: 1080,
+      });
+    }
     ctx.lineWidth = 30;
     ctx.strokeStyle = "#fff";
-    for (let i = 0; i <= count.value - 1; i++) {
+    for (let line of lines) {
       ctx.beginPath();
-      ctx.moveTo(80 + i * 160, 0);
-      ctx.lineTo(80 + i * 160, 1080);
+      ctx.moveTo(line.x1, line.y1);
+      ctx.lineTo(line.x2, line.y2);
       ctx.stroke();
-      ctx.beginPath();
     }
-
-    // for (let i = 1; i <= count.value; i++) {
-    //   ctx.lineWidth = 20;
-    //   ctx.strokeStyle = "#fff";
-
-    //   ctx.beginPath();
-    //   ctx.moveTo(12.5 * (2 * i - 1) - 0.5, 0);
-    //   ctx.lineTo(12.5 * (2 * i - 1) - 0.5, 330);
-    //   ctx.stroke();
-    //   ctx.beginPath();
-    // }
-    // for (let j = 0; j <= 1; j++) {
-    //   Array.from({ length: count.value - 1 }, (_, i) => {
-    //     const r = getRandomNumber(14, 140);
-    //     ctx.lineWidth = 4;
-    //     ctx.strokeStyle = "#3f3";
-    //     ctx.beginPath();
-    //     ctx.moveTo(12.5 + 25 * i, r);
-    //     ctx.lineTo(37.5 + 25 * i, r);
-    //     ctx.stroke();
-    //     ctx.beginPath();
-    //   });
-    // }
   }
-  onUpdated(() => {
-    console.log(selectedAvatar.value);
+
+  watch(selectedAvatar, (newValue, oldValue) => {
+    console.log(newValue, oldValue);
   });
+
   onMounted(() => {
+    var canvas = document.querySelectorAll("canvas");
     var q_canvas = document.getElementById("q_canvas") as HTMLCanvasElement;
-    var ctx = q_canvas.getContext("2d");
-    if (ctx) {
-      ladder_draw(ctx);
+    var r_canvas = document.getElementById("r_canvas") as HTMLCanvasElement;
+    const dpr = window.devicePixelRatio;
+
+    var q_ctx = q_canvas.getContext("2d");
+
+    canvas.forEach((v) => {
+      v.width = 1920 * dpr;
+      v.height = 1080 * dpr;
+    });
+
+    if (q_ctx) {
+      getLines(q_ctx);
     }
   });
 </script>
 <style lang="scss" scoped>
   canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 </style>

@@ -139,7 +139,8 @@
         }
       }
       .canvas_wrap {
-        margin: 0 auto;
+        position: relative;
+        height: 330px;
         overflow: hidden;
       }
       .ladderItem_wrap {

@@ -56,12 +56,12 @@
             }"
             v-for="(_, i) in inputValue"
             :key="i"
-            @click="selected(i)"
+            @click="getSelected(i)"
           >
             {{ i }}
           </div>
         </div>
-        <div class="canvas_wrap" :style="{ width: 50 * count + 'px' }">
+        <div class="canvas_wrap" :style="{ width: 50 * count + 'px', left: `calc(50% - ${50 * count}px /2 )` }">
           <ladder-canvas></ladder-canvas>
         </div>
         <div class="ladderItem_wrap">
@@ -79,8 +79,8 @@
   import { storeToRefs } from "pinia";
   import meta from "../../data/meta.js";
   const store = useLadder();
-  const { count, inputValue, settingError, selectedAvatar } = storeToRefs(store);
-  const { countUp, countDown, selected } = useLadder();
+  const { count, inputValue, settingError } = storeToRefs(store);
+  const { countUp, countDown, getSelected } = useLadder();
   const ladderStart = ref(true);
 
   function updateInput(v, i) {
