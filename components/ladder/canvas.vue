@@ -27,18 +27,54 @@
       });
     }
     for (let i = 0; i < count.value - 1; i++) {
-      const lineCount = Math.floor(Math.random() * 3) + 2;
+      const lineCount = Math.floor(Math.random() * 2) + 1;
       h_lines.push([]);
-      for (let j = 0; j < lineCount; j++) {
-        const randomY = 120 + Math.floor(Math.random() * 9) * 108;
+
+      for (let j = 0; j < 3; j++) {
         h_lines[i].push({
-          x1: 80 + i * 160,
-          y1: randomY,
-          x2: 80 + (i + 1) * 160,
-          y2: randomY,
+          x1: 0,
+          y1: 0,
+          x2: 0,
+          y2: 0,
         });
       }
+      const randomYs: number[] = [];
+
+      for (let j = 0; j < lineCount; j++) {
+        while (randomYs.length < lineCount) {
+          let randomY = 120 + Math.floor(Math.random() * 9) * 108;
+          if (!randomYs.includes(randomY)) {
+            randomYs.push(randomY);
+          }
+        }
+        h_lines[i][j] = {
+          x1: 80 + i * 160,
+          y1: randomYs[j],
+          x2: 80 + (i + 1) * 160,
+          y2: randomYs[j],
+        };
+      }
     }
+    // console.log(h_lines);
+    for (let i = 0; i < count.value - 2; i++) {
+      for (let j = 0; j < h_lines[i].length; j++) {
+        const currentY = h_lines[i][j].y1;
+        const nextY = h_lines[i + 1][j].y1;
+
+        if (currentY !== 0) {
+          console.log(i, j, "현재", currentY);
+          console.log("다음꺼", nextY);
+          console.log(currentY === nextY);
+
+          if (currentY === nextY) {
+            const randomY = 120 + Math.floor(Math.random() * 9) * 108;
+            h_lines[i + 1][j].y1 = randomY;
+            h_lines[i + 1][j].y2 = randomY;
+          }
+        }
+      }
+    }
+
     ctx.lineWidth = 30;
     ctx.strokeStyle = "#fff";
 
@@ -49,6 +85,7 @@
       ctx.stroke();
       ctx.beginPath();
     }
+
     h_lines.forEach((v) => {
       for (let line of v) {
         ctx.beginPath();
@@ -58,11 +95,6 @@
         ctx.beginPath();
       }
     });
-
-    ctx.lineWidth = 30;
-    ctx.strokeStyle = "#c34";
-
-    console.log(h_lines);
   }
 
   function draw_result(ctx: any, x1: number, y1: number, x2: number, y2: number, end: boolean) {
