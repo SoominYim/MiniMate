@@ -49,13 +49,11 @@
         <div class="avatar_wrap">
           <div
             class="avatar"
-            :style="{
-              backgroundColor: `rgba(${Math.floor(Math.random() * 255) + 1},${Math.floor(Math.random() * 255) + 1},${
-                Math.floor(Math.random() * 255) + 1
-              })`,
-            }"
             v-for="(_, i) in inputValue"
             :key="i"
+            :style="{
+              backgroundColor: randomColors[i],
+            }"
             @click="getSelected(i)"
           >
             {{ i }}
@@ -79,9 +77,9 @@
   import { storeToRefs } from "pinia";
   import meta from "../../data/meta.js";
   const store = useLadder();
-  const { count, inputValue, settingError, isPlay } = storeToRefs(store);
-  const { countUp, countDown, getSelected } = useLadder();
-  const ladderStart = ref(true);
+  const { count, inputValue, settingError, randomColors } = storeToRefs(store);
+  const { countUp, countDown, getSelected, generateRandomColors } = useLadder();
+  const ladderStart = ref(false);
 
   function updateInput(v, i) {
     inputValue.value[i] = v.replaceAll(" ", "");
@@ -111,7 +109,12 @@
       return;
     }
     ladderStart.value = true;
+    generateRandomColors();
   }
+
+  onMounted(() => {
+    generateRandomColors();
+  });
 </script>
 <style lang="scss" scoped>
   @import url("/assets/style/ladder.scss");
