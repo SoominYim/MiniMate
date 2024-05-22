@@ -199,8 +199,6 @@
     if (ctx) {
       lines.map((v) => (v.end = false));
       getLines(ctx);
-      console.log(lines);
-      console.log(lines);
     }
   });
 </script>

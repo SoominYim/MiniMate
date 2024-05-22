@@ -81,6 +81,8 @@
   const { countUp, countDown, getSelected, generateRandomColors } = useLadder();
   const ladderStart = ref(false);
 
+  useHead(meta.ladder);
+
   function updateInput(v, i) {
     inputValue.value[i] = v.replaceAll(" ", "");
     if (!inputValue.value.some((v) => v == "")) settingError.value = false;

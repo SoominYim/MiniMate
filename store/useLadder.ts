@@ -28,7 +28,6 @@ export const useLadder = defineStore("ladder", () => {
           Math.floor(Math.random() * 255) + 1
         }, 1)`
     );
-    console.log(randomColors.value);
   }
 
   return {
