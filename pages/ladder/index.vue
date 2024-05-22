@@ -52,7 +52,7 @@
             v-for="(_, i) in inputValue"
             :key="i"
             :style="{
-              backgroundColor: randomColors[i],
+              borderColor: randomColors[i],
             }"
             @click="getSelected(i)"
           >
@@ -68,7 +68,7 @@
           </div>
         </div>
       </div>
-      <button @click="ladderStart = false">돌아가기</button>
+      <button class="re_btn" @click="ladderStart = false">다시하기</button>
     </div>
   </div>
 </template>
