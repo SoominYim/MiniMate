@@ -9,8 +9,8 @@
 <script lang="ts" setup>
   function drawBoard(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     const boardSize = 19;
-    const margin = 45;
     const blockInterval = canvas.width / boardSize;
+    const margin = blockInterval / 2;
 
     //오목판 그리기
     for (var i = 1; i < boardSize; i++) {
@@ -26,8 +26,8 @@
         ctx.fillStyle = "black";
         ctx.beginPath();
         ctx.arc(
-          (3 + a) * blockInterval + margin + 10 + a * 5 * blockInterval,
-          (3 + b) * blockInterval + margin + 10 + b * 5 * blockInterval,
+          (3 + a) * blockInterval + margin + a * 5 * blockInterval,
+          (3 + b) * blockInterval + margin + b * 5 * blockInterval,
           40 / 3,
           0,
           Math.PI * 2
