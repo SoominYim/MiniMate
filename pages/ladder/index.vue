@@ -35,6 +35,7 @@
           <input
             class="result_input"
             type="text"
+            maxlength="3"
             :id="'input' + i"
             @input="updateInput($event.target.value, i - 1)"
             :value="inputValue[i - 1]"
@@ -56,14 +57,14 @@
             }"
             @click="getSelected(i)"
           >
-            {{ i }}
+            {{ i + 1 }}
           </div>
         </div>
         <div class="canvas_wrap" :style="{ width: 50 * count + 'px' }">
           <ladder-canvas></ladder-canvas>
         </div>
         <div class="ladderItem_wrap">
-          <div v-for="(v, i) in inputValue" :key="i" class="result">
+          <div v-for="(v, i) in inputValue" :key="i" class="result" style="overflow: hidden">
             {{ v }}
           </div>
         </div>

@@ -169,7 +169,6 @@
           ani = requestAnimationFrame(drawing);
         }
       };
-
       drawing();
     }
   }

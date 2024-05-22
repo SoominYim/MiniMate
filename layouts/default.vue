@@ -35,6 +35,13 @@
         <v-list-item-title class="미니기여어"> 게임 </v-list-item-title>
       </v-list-item>
       <v-list-item
+        prepend-icon="mdi-dice-5-outline"
+        @click="router.push('/omok')"
+        :class="[{ 'v-list-item--active': '/omok' === route.path }]"
+      >
+        <v-list-item-title> 오 목 </v-list-item-title>
+      </v-list-item>
+      <v-list-item
         prepend-icon="mdi-nintendo-game-boy"
         append-icon="mdi-open-in-new"
         target="_blank"
@@ -98,7 +105,9 @@
 
   watchEffect(() => {
     const menuItem = menuItems.value.find((v) => v.link === route.path);
-    if (menuItem) {
+    if (route.path === "/omok") {
+      currentTitle.value = "오 목";
+    } else if (menuItem) {
       currentTitle.value = route.path === "/" ? "미니기여어" : menuItem.title;
     }
   });
