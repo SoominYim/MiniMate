@@ -9,15 +9,17 @@
 
 <script lang="ts" setup>
   import { ref, onMounted, onUnmounted } from "vue";
-
+  const board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
+  console.log(board);
   interface Point {
-    offsetX: number;
-    offsetY: number;
     x: number;
     y: number;
+    type: string;
   }
 
   const clickedPoints = ref<Point[]>([]);
+
+  const thisType = ref("black");
 
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
     //오목판 그리기
@@ -45,19 +47,11 @@
     }
   }
 
-  function drawClickedPoints(ctx: CanvasRenderingContext2D, blockInterval: number) {
-    clickedPoints.value.forEach((point) => {
-      ctx.beginPath();
-      ctx.arc(
-        clickedPoints.value[clickedPoints.value.length - 1].offsetX,
-        clickedPoints.value[clickedPoints.value.length - 1].offsetY,
-        blockInterval / 2,
-        0,
-        Math.PI * 2
-      );
-      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-      ctx.fill();
-    });
+  function drawClickedPoints(ctx: CanvasRenderingContext2D, blockInterval: number, offsetX: number, offsetY: number) {
+    ctx.beginPath();
+    ctx.arc(offsetX, offsetY, blockInterval / 2, 0, Math.PI * 2);
+    ctx.fillStyle = thisType.value == "black" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
+    ctx.fill();
     console.log(clickedPoints.value);
   }
 
@@ -91,12 +85,14 @@
 
             // 마우스가 교차점에 근접했는지 확인
             if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
-              // 마우스 위치에 투명한 원 그리기
-              g_ctx.beginPath();
-              g_ctx.arc(nearX, nearY, blockInterval / 2, 0, Math.PI * 2);
-              g_ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-              g_ctx.fill();
-              break;
+              if (board[i][j].type === "") {
+                // 마우스 위치에 투명한 원 그리기
+                g_ctx.beginPath();
+                g_ctx.arc(nearX, nearY, blockInterval / 2, 0, Math.PI * 2);
+                g_ctx.fillStyle = thisType.value == "black" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
+                g_ctx.fill();
+                break;
+              }
             }
           }
         }
@@ -113,10 +109,15 @@
 
             // 마우스가 교차점에 근접했는지 확인
             if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
-              // 클릭 위치 저장
-              clickedPoints.value.push({ offsetX: nearX, offsetY: nearY, x: i, y: j });
-              drawClickedPoints(b_ctx, blockInterval);
-              break;
+              if (board[i][j].type === "") {
+                // 클릭 위치 저장
+                clickedPoints.value.push({ x: i, y: j, type: thisType.value });
+                drawClickedPoints(b_ctx, blockInterval, nearX, nearY);
+                board[i][j].type = thisType.value;
+                console.log(board);
+                thisType.value = thisType.value == "black" ? "white" : "black";
+                break;
+              }
             }
           }
         }
