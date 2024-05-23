@@ -23,6 +23,17 @@
   const maxSize = 720;
   const canvasSize = ref(720);
 
+  const directions = [
+    { dx: 1, dy: 0 }, // 오른쪽
+    { dx: -1, dy: 0 }, // 왼쪽
+    { dx: 0, dy: 1 }, // 아래쪽
+    { dx: 0, dy: -1 }, // 위쪽
+    { dx: 1, dy: 1 }, // 오른쪽 아래 대각선
+    { dx: -1, dy: -1 }, // 왼쪽 위 대각선
+    { dx: 1, dy: -1 }, // 오른쪽 위 대각선
+    { dx: -1, dy: 1 }, // 왼쪽 아래 대각선
+  ];
+
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
     // 오목판 그리기
     for (var i = 1; i < boardSize; i++) {
@@ -64,6 +75,25 @@
     });
   }
 
+  function checkDirection(x: number, y: number, dx: number, dy: number, type: string): number {
+    let count = 0;
+    let nx = x + dx;
+    let ny = y + dy;
+    while (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && board[nx][ny].type === type) {
+      count++;
+      nx += dx;
+      ny += dy;
+    }
+    return count;
+  }
+
+  function checkWin(x: number, y: number, type: string): boolean {
+    for (const { dx, dy } of directions) {
+      const count = 1 + checkDirection(x, y, dx, dy, type) + checkDirection(x, y, -dx, -dy, type);
+      if (count >= 5) return true;
+    }
+    return false;
+  }
   onMounted(() => {
     const b_canvas = document.getElementById("b_canvas") as HTMLCanvasElement;
     const g_canvas = document.getElementById("g_canvas") as HTMLCanvasElement;
@@ -147,6 +177,9 @@
               board[i][j].type = thisType.value;
               thisType.value = thisType.value == "black" ? "white" : "black";
               redrawBoard();
+              if (checkWin(i, j, board[i][j].type)) {
+                alert(`Player ${board[i][j].type} wins!`);
+              }
               break;
             }
           }
@@ -174,14 +207,8 @@
 
 <style lang="scss" scoped>
   .container {
-    background-color: antiquewhite;
-    display: flex;
-    justify-content: center;
     .board_wrap {
       position: relative;
-      margin: 0 auto;
-      width: 720px;
-      height: 720px;
       canvas {
         position: absolute;
         top: 0;
