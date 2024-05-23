@@ -18,14 +18,13 @@
   }
 
   const clickedPoints = ref<Point[]>([]);
-
   const thisType = ref("black");
 
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
-    //오목판 그리기
+    // 오목판 그리기
     for (var i = 1; i < boardSize; i++) {
       for (var j = 1; j < boardSize; j++) {
-        //정사각형 그리기
+        // 정사각형 그리기
         ctx.lineWidth = 2;
         ctx.strokeStyle = "black";
         ctx.strokeRect(blockInterval * i - margin, blockInterval * j - margin, blockInterval, blockInterval);
@@ -47,12 +46,19 @@
     }
   }
 
-  function drawClickedPoints(ctx: CanvasRenderingContext2D, blockInterval: number, offsetX: number, offsetY: number) {
-    ctx.beginPath();
-    ctx.arc(offsetX, offsetY, blockInterval / 2, 0, Math.PI * 2);
-    ctx.fillStyle = thisType.value == "black" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
-    ctx.fill();
-    console.log(clickedPoints.value);
+  function drawClickedPoints(ctx: CanvasRenderingContext2D, blockInterval: number) {
+    clickedPoints.value.forEach((point) => {
+      ctx.beginPath();
+      ctx.arc(
+        point.x * blockInterval + blockInterval / 2,
+        point.y * blockInterval + blockInterval / 2,
+        blockInterval / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fillStyle = point.type === "black" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
+      ctx.fill();
+    });
   }
 
   onMounted(() => {
@@ -62,22 +68,24 @@
     const b_ctx = b_canvas.getContext("2d");
     const g_ctx = g_canvas.getContext("2d");
     const boardSize = 19;
-    canvas.forEach((v) => {
-      v.width = 720;
-      v.height = 720;
-    });
+    const canvasSize = 720;
+
+    b_canvas.width = g_canvas.width = canvasSize;
+    b_canvas.height = g_canvas.height = canvasSize;
+
     const margin = b_canvas.width / boardSize / 2;
     const blockInterval = b_canvas.width / boardSize;
 
     if (b_ctx && g_ctx) {
       drawBoard(b_ctx, boardSize, blockInterval, margin);
+      drawClickedPoints(b_ctx, blockInterval);
+
       const handleMouseMove = (e: MouseEvent) => {
-        const rect = b_canvas.getBoundingClientRect();
+        const rect = g_canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
         g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
-        drawBoard(b_ctx, boardSize, blockInterval, margin);
         for (let i = 0; i <= boardSize; i++) {
           for (let j = 0; j <= boardSize; j++) {
             const nearX = i * blockInterval + margin;
@@ -91,7 +99,6 @@
                 g_ctx.arc(nearX, nearY, blockInterval / 2, 0, Math.PI * 2);
                 g_ctx.fillStyle = thisType.value == "black" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
                 g_ctx.fill();
-                break;
               }
             }
           }
@@ -112,7 +119,7 @@
               if (board[i][j].type === "") {
                 // 클릭 위치 저장
                 clickedPoints.value.push({ x: i, y: j, type: thisType.value });
-                drawClickedPoints(b_ctx, blockInterval, nearX, nearY);
+                drawClickedPoints(b_ctx, blockInterval);
                 board[i][j].type = thisType.value;
                 console.log(board);
                 thisType.value = thisType.value == "black" ? "white" : "black";
@@ -121,9 +128,6 @@
             }
           }
         }
-        // 캔버스를 클리어하고 다시 그리기
-        g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
-        drawBoard(b_ctx, boardSize, blockInterval, margin);
       };
 
       g_canvas.addEventListener("mousemove", handleMouseMove);
