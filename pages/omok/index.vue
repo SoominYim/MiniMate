@@ -16,16 +16,20 @@
     y: number;
     type: string;
   }
-
   const clickedPoints = ref<Point[]>([]);
   const thisType = ref("black");
+
+  const boardSize = 19;
+  const maxSize = 720;
+  const minSize = 300;
+  const canvasSize = ref(720);
 
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
     // 오목판 그리기
     for (var i = 1; i < boardSize; i++) {
       for (var j = 1; j < boardSize; j++) {
         // 정사각형 그리기
-        ctx.lineWidth = 2;
+        ctx.lineWidth = canvasSize.value / 360;
         ctx.strokeStyle = "black";
         ctx.strokeRect(blockInterval * i - margin, blockInterval * j - margin, blockInterval, blockInterval);
       }
@@ -37,7 +41,7 @@
         ctx.arc(
           (3 + a) * blockInterval + margin + a * 5 * blockInterval,
           (3 + b) * blockInterval + margin + b * 5 * blockInterval,
-          15 / 3,
+          canvasSize.value / 48 / 3,
           0,
           Math.PI * 2
         );
@@ -64,22 +68,20 @@
   onMounted(() => {
     const b_canvas = document.getElementById("b_canvas") as HTMLCanvasElement;
     const g_canvas = document.getElementById("g_canvas") as HTMLCanvasElement;
-    const canvas = document.querySelectorAll("canvas");
     const b_ctx = b_canvas.getContext("2d");
     const g_ctx = g_canvas.getContext("2d");
-    const boardSize = 19;
-    const canvasSize = 720;
-
-    b_canvas.width = g_canvas.width = canvasSize;
-    b_canvas.height = g_canvas.height = canvasSize;
+    b_canvas.width = g_canvas.width = canvasSize.value;
+    b_canvas.height = g_canvas.height = canvasSize.value;
 
     const margin = b_canvas.width / boardSize / 2;
     const blockInterval = b_canvas.width / boardSize;
 
     if (b_ctx && g_ctx) {
+      b_ctx.fillStyle = "#ffa701";
+      b_ctx.fillRect(0, 0, b_canvas.width, b_canvas.height);
+
       drawBoard(b_ctx, boardSize, blockInterval, margin);
       drawClickedPoints(b_ctx, blockInterval);
-
       const handleMouseMove = (e: MouseEvent) => {
         const rect = g_canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -104,6 +106,7 @@
           }
         }
       };
+
       const handleClick = (e: MouseEvent) => {
         const rect = g_canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -150,7 +153,7 @@
       position: relative;
       width: 720px;
       height: 720px;
-      background-color: #ffa701;
+      // background-color: #ffa701;
       canvas {
         position: absolute;
         top: 0;
