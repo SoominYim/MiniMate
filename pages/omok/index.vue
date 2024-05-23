@@ -21,7 +21,6 @@
 
   const boardSize = 19;
   const maxSize = 720;
-  const minSize = 300;
   const canvasSize = ref(720);
 
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
@@ -70,23 +69,42 @@
     const g_canvas = document.getElementById("g_canvas") as HTMLCanvasElement;
     const b_ctx = b_canvas.getContext("2d");
     const g_ctx = g_canvas.getContext("2d");
-    b_canvas.width = g_canvas.width = canvasSize.value;
-    b_canvas.height = g_canvas.height = canvasSize.value;
 
-    const margin = b_canvas.width / boardSize / 2;
-    const blockInterval = b_canvas.width / boardSize;
+    const updateCanvasSize = () => {
+      if (window.innerWidth < maxSize) {
+        canvasSize.value = window.innerWidth;
+      } else {
+        canvasSize.value = maxSize;
+      }
+      b_canvas.width = g_canvas.width = canvasSize.value;
+      b_canvas.height = g_canvas.height = canvasSize.value;
+    };
 
-    if (b_ctx && g_ctx) {
-      b_ctx.fillStyle = "#ffa701";
-      b_ctx.fillRect(0, 0, b_canvas.width, b_canvas.height);
+    const redrawBoard = () => {
+      if (b_ctx) {
+        b_ctx.clearRect(0, 0, b_canvas.width, b_canvas.height);
+        b_ctx.fillStyle = "#ffa701";
+        b_ctx.fillRect(0, 0, b_canvas.width, b_canvas.height);
 
-      drawBoard(b_ctx, boardSize, blockInterval, margin);
-      drawClickedPoints(b_ctx, blockInterval);
-      const handleMouseMove = (e: MouseEvent) => {
-        const rect = g_canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const margin = canvasSize.value / boardSize / 2;
+        const blockInterval = canvasSize.value / boardSize;
 
+        drawBoard(b_ctx, boardSize, blockInterval, margin);
+        drawClickedPoints(b_ctx, blockInterval);
+      }
+    };
+
+    updateCanvasSize();
+    redrawBoard();
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = g_canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const margin = canvasSize.value / boardSize / 2;
+      const blockInterval = canvasSize.value / boardSize;
+      if (g_ctx) {
         g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
         for (let i = 0; i <= boardSize; i++) {
           for (let j = 0; j <= boardSize; j++) {
@@ -105,55 +123,65 @@
             }
           }
         }
-      };
+      }
+    };
 
-      const handleClick = (e: MouseEvent) => {
-        const rect = g_canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+    const handleClick = (e: MouseEvent) => {
+      const rect = g_canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-        for (let i = 0; i < boardSize; i++) {
-          for (let j = 0; j < boardSize; j++) {
-            const nearX = i * blockInterval + margin;
-            const nearY = j * blockInterval + margin;
+      const margin = canvasSize.value / boardSize / 2;
+      const blockInterval = canvasSize.value / boardSize;
 
-            // 마우스가 교차점에 근접했는지 확인
-            if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
-              if (board[i][j].type === "") {
-                // 클릭 위치 저장
-                clickedPoints.value.push({ x: i, y: j, type: thisType.value });
-                drawClickedPoints(b_ctx, blockInterval);
-                board[i][j].type = thisType.value;
-                console.log(board);
-                thisType.value = thisType.value == "black" ? "white" : "black";
-                break;
-              }
+      for (let i = 0; i < boardSize; i++) {
+        for (let j = 0; j < boardSize; j++) {
+          const nearX = i * blockInterval + margin;
+          const nearY = j * blockInterval + margin;
+
+          // 마우스가 교차점에 근접했는지 확인
+          if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
+            if (board[i][j].type === "") {
+              // 클릭 위치 저장
+              clickedPoints.value.push({ x: i, y: j, type: thisType.value });
+              board[i][j].type = thisType.value;
+              thisType.value = thisType.value == "black" ? "white" : "black";
+              redrawBoard();
+              break;
             }
           }
         }
-      };
+      }
+    };
 
-      g_canvas.addEventListener("mousemove", handleMouseMove);
-      g_canvas.addEventListener("click", handleClick);
-      onUnmounted(() => {
-        g_canvas.removeEventListener("mousemove", handleMouseMove);
-        g_canvas.removeEventListener("click", handleClick);
-      });
-    }
+    const handleResize = () => {
+      updateCanvasSize();
+      redrawBoard();
+    };
+
+    window.addEventListener("resize", handleResize);
+    g_canvas.addEventListener("mousemove", handleMouseMove);
+    g_canvas.addEventListener("click", handleClick);
+
+    onUnmounted(() => {
+      window.removeEventListener("resize", handleResize);
+      g_canvas.removeEventListener("mousemove", handleMouseMove);
+      g_canvas.removeEventListener("click", handleClick);
+      // g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
+    });
   });
 </script>
 
 <style lang="scss" scoped>
   .container {
-    padding: 50px 0 0 0;
     background-color: antiquewhite;
     display: flex;
     justify-content: center;
     .board_wrap {
       position: relative;
+      margin: 0 auto;
       width: 720px;
       height: 720px;
-      // background-color: #ffa701;
       canvas {
         position: absolute;
         top: 0;
