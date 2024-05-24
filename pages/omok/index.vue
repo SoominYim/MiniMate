@@ -10,7 +10,6 @@
 <script lang="ts" setup>
   import { ref, onMounted, onUnmounted } from "vue";
   const board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
-  console.log(board);
   interface Point {
     x: number;
     y: number;
@@ -209,6 +208,8 @@
   .container {
     .board_wrap {
       position: relative;
+      display: flex;
+      flex-wrap: wrap;
       canvas {
         position: absolute;
         top: 0;
