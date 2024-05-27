@@ -1,15 +1,36 @@
 <template>
-  <div class="container">
+  <loading v-if="isLoading" />
+  <div v-show="!isLoading" class="container">
     <div class="board_wrap" :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }">
       <canvas id="b_canvas"></canvas>
       <canvas id="g_canvas"></canvas>
+      <div
+        class="start_wrap"
+        v-if="!gameStart"
+        :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }"
+        @click="startGame"
+      >
+        <button class="start_btn">시작 하기</button>
+      </div>
     </div>
+    <div class="text_wrap">
+      <div class="count">
+        <div class="black_count">흑돌 : 3:00</div>
+        <div class="white_count">백돌 : 3:00</div>
+      </div>
+    </div>
+
     <button class="reset_btn">다시하기</button>
   </div>
 </template>
 
 <script lang="ts" setup>
   import { ref, onMounted, onUnmounted } from "vue";
+  import meta from "../../data/meta.js";
+  useHead(meta.omok);
+
+  const isLoading = ref(true);
+
   let board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
   interface Point {
     x: number;
@@ -23,6 +44,10 @@
   const maxSize = 720;
   const canvasSize = ref(720);
   const gameEnd = ref(false);
+  const gameStart = ref(false);
+
+  const blackCount = ref("3:00");
+  const whiteCount = ref("3:00");
 
   const directions = [
     { dx: 1, dy: 0 }, // 오른쪽
@@ -34,6 +59,10 @@
     { dx: 1, dy: -1 }, // 오른쪽 위 대각선
     { dx: -1, dy: 1 }, // 왼쪽 아래 대각선
   ];
+
+  function startGame() {
+    gameStart.value = true;
+  }
 
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
     // 오목판 그리기
@@ -123,6 +152,7 @@
 
         drawBoard(b_ctx, boardSize, blockInterval, margin);
         drawClickedPoints(b_ctx, blockInterval);
+        isLoading.value = false;
       }
     };
 
@@ -145,7 +175,7 @@
         gameEnd.value = false;
       }
     };
-    console.log(clickedPoints.value);
+
     const handleMouseMove = (e: MouseEvent) => {
       const rect = g_canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -237,10 +267,24 @@
       position: relative;
       display: flex;
       flex-wrap: wrap;
+
       canvas {
         position: absolute;
         top: 0;
         left: 0;
+      }
+      .start_wrap {
+        background-color: rgba(0, 0, 0, 0.2);
+        z-index: 2;
+        .start_btn {
+          position: absolute;
+          border: 3px #333 solid;
+          background-color: #41b883;
+          border-radius: 10px;
+          font-size: 20px;
+          width: 50%;
+          height: 100px;
+        }
       }
     }
   }

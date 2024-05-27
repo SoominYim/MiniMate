@@ -66,7 +66,7 @@ const meta = {
       { property: "og:url", content: "https://mini-mate-s.vercel.app/mini.png" },
     ],
   },
-  ladder: {
+  omok: {
     title: "오목",
     meta: [
       {
