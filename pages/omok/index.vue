@@ -32,7 +32,7 @@
         <input type="radio" name="boardSize" v-model="boardSize" id="b" value="19" />
       </div>
       <div v-show="gameStart" class="btn_wrap">
-        <button class="return_btn">무르기</button>
+        <button class="return_btn" :class="{ disabled: gameEnd }">무르기</button>
         <button class="reset_btn">다시하기</button>
       </div>
     </div>
@@ -85,10 +85,11 @@
 
   function startGame() {
     gameStart.value = true;
+    gameEnd.value = false;
   }
 
+  // 보드판 그리기
   function drawBoard(ctx: CanvasRenderingContext2D, boardSize: number, blockInterval: number, margin: number) {
-    // 오목판 그리기
     for (var i = 1; i < boardSize; i++) {
       for (var j = 1; j < boardSize; j++) {
         // 정사각형 그리기
@@ -99,6 +100,7 @@
     }
   }
 
+  // 클릭한 포인트에 수를 그려줌
   function drawClickedPoints(ctx: CanvasRenderingContext2D, blockInterval: number) {
     clickedPoints.value.forEach((point) => {
       ctx.beginPath();
@@ -114,6 +116,7 @@
     });
   }
 
+  // 수를 둔 곳의 8방향을 탐색함
   function checkDirection(x: number, y: number, dx: number, dy: number, type: string): number {
     let count = 0;
     let nx = x + dx;
@@ -126,6 +129,7 @@
     return count;
   }
 
+  // 5목을 만들었을시에 승리
   function checkWin(x: number, y: number, type: string): boolean {
     for (const { dx, dy } of directions) {
       const count = 1 + checkDirection(x, y, dx, dy, type) + checkDirection(x, y, -dx, -dy, type);
@@ -142,6 +146,7 @@
 
     windowWidth.value = window.innerWidth;
 
+    // canvasSize 반응형
     const updateCanvasSize = () => {
       if (window.innerWidth < maxSize) {
         canvasSize.value = window.innerWidth;
@@ -153,6 +158,7 @@
       windowWidth.value = window.innerWidth;
     };
 
+    // 보드판 초기화
     const redrawBoard = () => {
       if (b_ctx) {
         b_ctx.clearRect(0, 0, b_canvas.width, b_canvas.height);
@@ -171,6 +177,7 @@
     updateCanvasSize();
     redrawBoard();
 
+    // 게임 다시하기 시 보드판을 새로그리고 기존 board를 초기화
     const resetGame = () => {
       if (b_ctx && g_ctx) {
         const margin = canvasSize.value / boardSize.value / 2;
@@ -190,6 +197,16 @@
         thisType.value = "black";
       }
     };
+    const returnPoint = () => {
+      if (clickedPoints.value.length > 2) {
+        const lastPoint = clickedPoints.value.pop();
+        if (lastPoint) {
+          board[lastPoint.x][lastPoint.y].type = "";
+          thisType.value = thisType.value == "black" ? "white" : "black";
+          redrawBoard();
+        }
+      }
+    };
 
     // boardSize 선택 시 캔버스 다시 그리고, board 초기화
     watch(boardSize, () => {
@@ -201,6 +218,8 @@
       );
       clickedPoints.value = [];
     });
+
+    // 보드판에서 수를 두기전에 미리 놓을 자리를 보여줌
     const handleMouseMove = (e: MouseEvent) => {
       const rect = g_canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -232,6 +251,7 @@
       }
     };
 
+    // 마우스 무브와 동일함
     const handleClick = (e: MouseEvent) => {
       const rect = g_canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -266,16 +286,16 @@
     };
 
     const resetBtn = document.querySelector(".reset_btn");
+    const returnBtn = document.querySelector(".return_btn");
 
-    resetBtn?.addEventListener("click", resetGame);
     const handleResize = () => {
       updateCanvasSize();
       redrawBoard();
     };
-    watch(clickedPoints, (newValue, oldValue) => {
-      console.log(newValue);
-      console.log(oldValue);
-    });
+
+    resetBtn?.addEventListener("click", resetGame);
+    returnBtn?.addEventListener("click", returnPoint);
+
     window.addEventListener("resize", handleResize);
     g_canvas.addEventListener("mousemove", handleMouseMove);
     g_canvas.addEventListener("click", handleClick);
@@ -327,6 +347,10 @@
           font-size: 20px;
           width: 100px;
           height: 60px;
+          &.disabled {
+            background-color: #888;
+            pointer-events: none;
+          }
         }
       }
     }
