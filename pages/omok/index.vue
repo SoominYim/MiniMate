@@ -1,6 +1,6 @@
 <template>
   <loading v-if="isLoading" />
-  <div v-show="!isLoading" class="container">
+  <div v-show="!isLoading" class="container" :style="{ width: windowWidth + 'px' }">
     <div class="board_wrap" :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }">
       <canvas id="b_canvas"></canvas>
       <canvas id="g_canvas"></canvas>
@@ -20,14 +20,22 @@
         </button>
       </div>
     </div>
-    <div class="text_wrap">
+    <div class="table_wrap">
       <div class="count">
         <div class="black_count">흑돌 : 3:00</div>
         <div class="white_count">백돌 : 3:00</div>
       </div>
+      <div v-if="!gameStart" class="setting_wrap">
+        <label for="a">15</label>
+        <input type="radio" name="boardSize" v-model="boardSize" id="a" value="15" />
+        <label for="b">19</label>
+        <input type="radio" name="boardSize" v-model="boardSize" id="b" value="19" />
+      </div>
+      <div v-show="gameStart" class="btn_wrap">
+        <button class="return_btn">무르기</button>
+        <button class="reset_btn">다시하기</button>
+      </div>
     </div>
-
-    <button class="reset_btn">다시하기</button>
   </div>
 </template>
 
@@ -38,7 +46,6 @@
 
   const isLoading = ref(true);
 
-  let board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
   interface Point {
     x: number;
     y: number;
@@ -47,14 +54,23 @@
   const clickedPoints = ref<Point[]>([]);
   const thisType = ref("black");
 
-  const boardSize = 19;
-  const maxSize = 720;
+  const boardSize = ref(15);
+  let board = Array.from({ length: boardSize.value }, (_, i) =>
+    Array.from({ length: boardSize.value }, (_, j) => ({ x: i, y: j, type: "" }))
+  );
+  const maxSize = 869;
   const canvasSize = ref(720);
-  const gameEnd = ref(false);
+
+  // 게임이 시작됐는지 확인
   const gameStart = ref(false);
+
+  // 게임이 종료 되었는지 확인
+  const gameEnd = ref(false);
 
   const blackCount = ref("3:00");
   const whiteCount = ref("3:00");
+
+  const windowWidth = ref(0);
 
   const directions = [
     { dx: 1, dy: 0 }, // 오른쪽
@@ -81,20 +97,6 @@
         ctx.strokeRect(blockInterval * i - margin, blockInterval * j - margin, blockInterval, blockInterval);
       }
     }
-    for (let a = 0; a < 3; a++) {
-      for (let b = 0; b < 3; b++) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.arc(
-          (3 + a) * blockInterval + margin + a * 5 * blockInterval,
-          (3 + b) * blockInterval + margin + b * 5 * blockInterval,
-          canvasSize.value / 48 / 3,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-      }
-    }
   }
 
   function drawClickedPoints(ctx: CanvasRenderingContext2D, blockInterval: number) {
@@ -116,7 +118,7 @@
     let count = 0;
     let nx = x + dx;
     let ny = y + dy;
-    while (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && board[nx][ny].type === type) {
+    while (nx >= 0 && nx < boardSize.value && ny >= 0 && ny < boardSize.value && board[nx][ny].type === type) {
       count++;
       nx += dx;
       ny += dy;
@@ -138,6 +140,8 @@
     const b_ctx = b_canvas.getContext("2d");
     const g_ctx = g_canvas.getContext("2d");
 
+    windowWidth.value = window.innerWidth;
+
     const updateCanvasSize = () => {
       if (window.innerWidth < maxSize) {
         canvasSize.value = window.innerWidth;
@@ -146,6 +150,7 @@
       }
       b_canvas.width = g_canvas.width = canvasSize.value;
       b_canvas.height = g_canvas.height = canvasSize.value;
+      windowWidth.value = window.innerWidth;
     };
 
     const redrawBoard = () => {
@@ -154,10 +159,10 @@
         b_ctx.fillStyle = "#ffa701";
         b_ctx.fillRect(0, 0, b_canvas.width, b_canvas.height);
 
-        const margin = canvasSize.value / boardSize / 2;
-        const blockInterval = canvasSize.value / boardSize;
+        const margin = canvasSize.value / boardSize.value / 2;
+        const blockInterval = canvasSize.value / boardSize.value;
 
-        drawBoard(b_ctx, boardSize, blockInterval, margin);
+        drawBoard(b_ctx, boardSize.value, blockInterval, margin);
         drawClickedPoints(b_ctx, blockInterval);
         isLoading.value = false;
       }
@@ -168,33 +173,46 @@
 
     const resetGame = () => {
       if (b_ctx && g_ctx) {
-        const margin = canvasSize.value / boardSize / 2;
-        const blockInterval = canvasSize.value / boardSize;
+        const margin = canvasSize.value / boardSize.value / 2;
+        const blockInterval = canvasSize.value / boardSize.value;
         g_ctx.clearRect(0, 0, b_canvas.width, b_canvas.height);
         b_ctx.clearRect(0, 0, b_canvas.width, b_canvas.height);
         b_ctx.fillStyle = "#ffa701";
         b_ctx.fillRect(0, 0, b_canvas.width, b_canvas.height);
-        drawBoard(b_ctx, boardSize, blockInterval, margin);
+        drawBoard(b_ctx, boardSize.value, blockInterval, margin);
 
-        board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
+        board = Array.from({ length: boardSize.value }, (_, i) =>
+          Array.from({ length: boardSize.value }, (_, j) => ({ x: i, y: j, type: "" }))
+        );
         clickedPoints.value = [];
 
-        gameEnd.value = false;
+        gameStart.value = false;
+        thisType.value = "black";
       }
     };
 
+    // boardSize 선택 시 캔버스 다시 그리고, board 초기화
+    watch(boardSize, () => {
+      updateCanvasSize();
+      redrawBoard();
+
+      board = Array.from({ length: boardSize.value }, (_, i) =>
+        Array.from({ length: boardSize.value }, (_, j) => ({ x: i, y: j, type: "" }))
+      );
+      clickedPoints.value = [];
+    });
     const handleMouseMove = (e: MouseEvent) => {
       const rect = g_canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const margin = canvasSize.value / boardSize / 2;
-      const blockInterval = canvasSize.value / boardSize;
+      const margin = canvasSize.value / boardSize.value / 2;
+      const blockInterval = canvasSize.value / boardSize.value;
       if (!gameEnd.value) {
         if (g_ctx) {
           g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
-          for (let i = 0; i <= boardSize; i++) {
-            for (let j = 0; j <= boardSize; j++) {
+          for (let i = 0; i <= boardSize.value; i++) {
+            for (let j = 0; j <= boardSize.value; j++) {
               const nearX = i * blockInterval + margin;
               const nearY = j * blockInterval + margin;
 
@@ -219,11 +237,11 @@
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const margin = canvasSize.value / boardSize / 2;
-      const blockInterval = canvasSize.value / boardSize;
+      const margin = canvasSize.value / boardSize.value / 2;
+      const blockInterval = canvasSize.value / boardSize.value;
       if (!gameEnd.value) {
-        for (let i = 0; i < boardSize; i++) {
-          for (let j = 0; j < boardSize; j++) {
+        for (let i = 0; i < boardSize.value; i++) {
+          for (let j = 0; j < boardSize.value; j++) {
             const nearX = i * blockInterval + margin;
             const nearY = j * blockInterval + margin;
 
@@ -238,7 +256,6 @@
                 if (checkWin(i, j, board[i][j].type)) {
                   alert(`Player ${board[i][j].type} wins!`);
                   gameEnd.value = true;
-                  console.log(gameEnd.value);
                 }
                 break;
               }
@@ -247,6 +264,7 @@
         }
       }
     };
+
     const resetBtn = document.querySelector(".reset_btn");
 
     resetBtn?.addEventListener("click", resetGame);
@@ -254,7 +272,10 @@
       updateCanvasSize();
       redrawBoard();
     };
-
+    watch(clickedPoints, (newValue, oldValue) => {
+      console.log(newValue);
+      console.log(oldValue);
+    });
     window.addEventListener("resize", handleResize);
     g_canvas.addEventListener("mousemove", handleMouseMove);
     g_canvas.addEventListener("click", handleClick);
@@ -270,10 +291,11 @@
 
 <style lang="scss" scoped>
   .container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     .board_wrap {
       position: relative;
-      display: flex;
-      flex-wrap: wrap;
 
       canvas {
         position: absolute;
@@ -290,6 +312,21 @@
           background-color: #41b883;
           border-radius: 10px;
           font-size: 20px;
+        }
+      }
+    }
+    .table_wrap {
+      .count {
+        font-size: 30px;
+      }
+      .btn_wrap {
+        button {
+          border: 3px #333 solid;
+          background-color: #41b883;
+          border-radius: 10px;
+          font-size: 20px;
+          width: 100px;
+          height: 60px;
         }
       }
     }
