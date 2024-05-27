@@ -1,15 +1,16 @@
 <template>
   <div class="container">
-    <div class="board_wrap">
+    <div class="board_wrap" :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }">
       <canvas id="b_canvas"></canvas>
       <canvas id="g_canvas"></canvas>
     </div>
+    <button class="reset_btn">다시하기</button>
   </div>
 </template>
 
 <script lang="ts" setup>
   import { ref, onMounted, onUnmounted } from "vue";
-  const board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
+  let board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
   interface Point {
     x: number;
     y: number;
@@ -21,6 +22,7 @@
   const boardSize = 19;
   const maxSize = 720;
   const canvasSize = ref(720);
+  const gameEnd = ref(false);
 
   const directions = [
     { dx: 1, dy: 0 }, // 오른쪽
@@ -93,6 +95,7 @@
     }
     return false;
   }
+
   onMounted(() => {
     const b_canvas = document.getElementById("b_canvas") as HTMLCanvasElement;
     const g_canvas = document.getElementById("g_canvas") as HTMLCanvasElement;
@@ -126,6 +129,23 @@
     updateCanvasSize();
     redrawBoard();
 
+    const resetGame = () => {
+      if (b_ctx && g_ctx) {
+        const margin = canvasSize.value / boardSize / 2;
+        const blockInterval = canvasSize.value / boardSize;
+        g_ctx.clearRect(0, 0, b_canvas.width, b_canvas.height);
+        b_ctx.clearRect(0, 0, b_canvas.width, b_canvas.height);
+        b_ctx.fillStyle = "#ffa701";
+        b_ctx.fillRect(0, 0, b_canvas.width, b_canvas.height);
+        drawBoard(b_ctx, boardSize, blockInterval, margin);
+
+        board = Array.from({ length: 19 }, (_, i) => Array.from({ length: 19 }, (_, j) => ({ x: i, y: j, type: "" })));
+        clickedPoints.value = [];
+
+        gameEnd.value = false;
+      }
+    };
+    console.log(clickedPoints.value);
     const handleMouseMove = (e: MouseEvent) => {
       const rect = g_canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -133,21 +153,23 @@
 
       const margin = canvasSize.value / boardSize / 2;
       const blockInterval = canvasSize.value / boardSize;
-      if (g_ctx) {
-        g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
-        for (let i = 0; i <= boardSize; i++) {
-          for (let j = 0; j <= boardSize; j++) {
-            const nearX = i * blockInterval + margin;
-            const nearY = j * blockInterval + margin;
+      if (!gameEnd.value) {
+        if (g_ctx) {
+          g_ctx.clearRect(0, 0, g_canvas.width, g_canvas.height);
+          for (let i = 0; i <= boardSize; i++) {
+            for (let j = 0; j <= boardSize; j++) {
+              const nearX = i * blockInterval + margin;
+              const nearY = j * blockInterval + margin;
 
-            // 마우스가 교차점에 근접했는지 확인
-            if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
-              if (board[i][j].type === "") {
-                // 마우스 위치에 투명한 원 그리기
-                g_ctx.beginPath();
-                g_ctx.arc(nearX, nearY, blockInterval / 2, 0, Math.PI * 2);
-                g_ctx.fillStyle = thisType.value == "black" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
-                g_ctx.fill();
+              // 마우스가 교차점에 근접했는지 확인
+              if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
+                if (board[i][j].type === "") {
+                  // 마우스 위치에 투명한 원 그리기
+                  g_ctx.beginPath();
+                  g_ctx.arc(nearX, nearY, blockInterval / 2, 0, Math.PI * 2);
+                  g_ctx.fillStyle = thisType.value == "black" ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
+                  g_ctx.fill();
+                }
               }
             }
           }
@@ -162,30 +184,35 @@
 
       const margin = canvasSize.value / boardSize / 2;
       const blockInterval = canvasSize.value / boardSize;
+      if (!gameEnd.value) {
+        for (let i = 0; i < boardSize; i++) {
+          for (let j = 0; j < boardSize; j++) {
+            const nearX = i * blockInterval + margin;
+            const nearY = j * blockInterval + margin;
 
-      for (let i = 0; i < boardSize; i++) {
-        for (let j = 0; j < boardSize; j++) {
-          const nearX = i * blockInterval + margin;
-          const nearY = j * blockInterval + margin;
-
-          // 마우스가 교차점에 근접했는지 확인
-          if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
-            if (board[i][j].type === "") {
-              // 클릭 위치 저장
-              clickedPoints.value.push({ x: i, y: j, type: thisType.value });
-              board[i][j].type = thisType.value;
-              thisType.value = thisType.value == "black" ? "white" : "black";
-              redrawBoard();
-              if (checkWin(i, j, board[i][j].type)) {
-                alert(`Player ${board[i][j].type} wins!`);
+            // 마우스가 교차점에 근접했는지 확인
+            if (Math.abs(x - nearX) <= margin && Math.abs(y - nearY) <= margin) {
+              if (board[i][j].type === "") {
+                // 클릭 위치 저장
+                clickedPoints.value.push({ x: i, y: j, type: thisType.value });
+                board[i][j].type = thisType.value;
+                thisType.value = thisType.value == "black" ? "white" : "black";
+                redrawBoard();
+                if (checkWin(i, j, board[i][j].type)) {
+                  alert(`Player ${board[i][j].type} wins!`);
+                  gameEnd.value = true;
+                  console.log(gameEnd.value);
+                }
+                break;
               }
-              break;
             }
           }
         }
       }
     };
+    const resetBtn = document.querySelector(".reset_btn");
 
+    resetBtn?.addEventListener("click", resetGame);
     const handleResize = () => {
       updateCanvasSize();
       redrawBoard();
