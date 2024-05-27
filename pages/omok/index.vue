@@ -4,13 +4,20 @@
     <div class="board_wrap" :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }">
       <canvas id="b_canvas"></canvas>
       <canvas id="g_canvas"></canvas>
-      <div
-        class="start_wrap"
-        v-if="!gameStart"
-        :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }"
-        @click="startGame"
-      >
-        <button class="start_btn">시작 하기</button>
+      <div class="start_wrap" v-if="!gameStart" :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }">
+        <button
+          @click="startGame"
+          class="start_btn"
+          :style="{
+            width: canvasSize / 3 + 'px',
+            height: canvasSize / 7.2 + 'px',
+            fontSize: canvasSize / 240 + 'rem',
+            left: canvasSize / 2 - canvasSize / 6 + 'px',
+            top: canvasSize / 2 - canvasSize / 14.4 + 'px',
+          }"
+        >
+          시작 하기
+        </button>
       </div>
     </div>
     <div class="text_wrap">
@@ -276,14 +283,13 @@
       .start_wrap {
         background-color: rgba(0, 0, 0, 0.2);
         z-index: 2;
+        position: relative;
         .start_btn {
           position: absolute;
           border: 3px #333 solid;
           background-color: #41b883;
           border-radius: 10px;
           font-size: 20px;
-          width: 50%;
-          height: 100px;
         }
       }
     }
