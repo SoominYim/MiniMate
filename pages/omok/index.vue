@@ -21,14 +21,24 @@
       </div>
     </div>
     <div class="table_wrap">
-      <div class="count">
-        <div class="black_count">흑돌 : 3:00</div>
-        <div class="white_count">백돌 : 3:00</div>
+      <div class="count_wrap">
+        <div>시간 설정</div>
+        <select v-model="minute" name="" id="">
+          <option>3</option>
+          <option>5</option>
+          <option>10</option>
+          <option>15</option>
+          <option>30</option>
+          <option>60</option>
+        </select>
+        <div class="black_count">흑돌 : {{ blackCount }}</div>
+        <div class="white_count">백돌 : {{ whiteCount }}</div>
       </div>
       <div v-if="!gameStart" class="setting_wrap">
-        <label for="a">15</label>
+        <div>오목판 크기 설정</div>
+        <label for="a">15 * 15</label>
         <input type="radio" name="boardSize" v-model="boardSize" id="a" value="15" />
-        <label for="b">19</label>
+        <label for="b">19 * 19</label>
         <input type="radio" name="boardSize" v-model="boardSize" id="b" value="19" />
       </div>
       <div v-show="gameStart" class="btn_wrap">
@@ -67,10 +77,15 @@
   // 게임이 종료 되었는지 확인
   const gameEnd = ref(false);
 
-  const blackCount = ref("3:00");
-  const whiteCount = ref("3:00");
+  const minute = ref(3);
+
+  const blackCount = ref(`${minute.value}:00`);
+  const whiteCount = ref(`${minute.value}:00`);
 
   const windowWidth = ref(0);
+
+  let blackInterval: any = null;
+  let whiteInterval: any = null;
 
   const directions = [
     { dx: 1, dy: 0 }, // 오른쪽
@@ -83,9 +98,55 @@
     { dx: -1, dy: 1 }, // 왼쪽 아래 대각선
   ];
 
+  // 시간 설정
+  const updateTime = () => {
+    blackCount.value = `${minute.value}:00`;
+    whiteCount.value = `${minute.value}:00`;
+  };
+
+  watch(minute, updateTime);
+
+  const startBlackCountdown = () => {
+    if (blackInterval) clearInterval(blackInterval);
+    blackInterval = setInterval(() => {
+      const [min, sec] = blackCount.value.split(":").map(Number);
+      if (min === 0 && sec === 0) {
+        clearInterval(blackInterval);
+      } else {
+        let newMin = min;
+        let newSec = sec - 1;
+        if (newSec < 0) {
+          newSec = 59;
+          newMin = min - 1;
+        }
+        blackCount.value = `${newMin}:${newSec < 10 ? "0" + newSec : newSec}`;
+      }
+    }, 1000);
+  };
+  const startWhiteCountdown = () => {
+    if (whiteInterval) clearInterval(whiteInterval);
+    whiteInterval = setInterval(() => {
+      const [min, sec] = whiteCount.value.split(":").map(Number);
+      if (min === 0 && sec === 0) {
+        clearInterval(whiteInterval);
+      } else {
+        let newMin = min;
+        let newSec = sec - 1;
+        if (newSec < 0) {
+          newSec = 59;
+          newMin = min - 1;
+        }
+        whiteCount.value = `${newMin}:${newSec < 10 ? "0" + newSec : newSec}`;
+      }
+    }, 1000);
+  };
+
+  // 게임 시작
   function startGame() {
     gameStart.value = true;
     gameEnd.value = false;
+
+    startBlackCountdown();
   }
 
   // 보드판 그리기
@@ -195,6 +256,10 @@
 
         gameStart.value = false;
         thisType.value = "black";
+
+        updateTime();
+        clearInterval(blackInterval);
+        clearInterval(whiteInterval);
       }
     };
     const returnPoint = () => {
@@ -271,8 +336,16 @@
                 // 클릭 위치 저장
                 clickedPoints.value.push({ x: i, y: j, type: thisType.value });
                 board[i][j].type = thisType.value;
+                if (thisType.value === "black") {
+                  clearInterval(blackInterval);
+                  startWhiteCountdown();
+                } else {
+                  clearInterval(whiteInterval);
+                  startBlackCountdown();
+                }
                 thisType.value = thisType.value == "black" ? "white" : "black";
                 redrawBoard();
+
                 if (checkWin(i, j, board[i][j].type)) {
                   alert(`Player ${board[i][j].type} wins!`);
                   gameEnd.value = true;
@@ -336,7 +409,7 @@
       }
     }
     .table_wrap {
-      .count {
+      .count_wrap {
         font-size: 30px;
       }
       .btn_wrap {
