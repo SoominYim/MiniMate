@@ -172,7 +172,6 @@
       drawing();
     }
   }
-
   watch(selectedAvatar, (newValue, oldValue) => {
     const r_canvas = document.getElementById("r_canvas") as HTMLCanvasElement;
     const ctx = r_canvas.getContext("2d");

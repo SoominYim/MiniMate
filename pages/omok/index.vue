@@ -1,6 +1,10 @@
 <template>
   <loading v-if="isLoading" />
-  <div v-show="!isLoading" class="container" :style="{ width: windowWidth + 'px' }">
+  <div
+    v-show="!isLoading"
+    class="container"
+    :style="{ width: windowWidth + 'px', flexWrap: windowWidth > maxSize ? 'nowrap' : 'wrap' }"
+  >
     <div class="board_wrap" :style="{ width: canvasSize + 'px', height: canvasSize + 'px' }">
       <canvas id="b_canvas"></canvas>
       <canvas id="g_canvas"></canvas>
@@ -20,10 +24,29 @@
         </button>
       </div>
     </div>
-    <div class="table_wrap">
-      <div class="count_wrap">
-        <div>시간 설정</div>
-        <select v-model="minute" name="" id="">
+    <div
+      class="table_wrap"
+      :style="{
+        width: canvasSize + 'px',
+      }"
+    >
+      <div class="user_wrap">
+        <div class="black_count">
+          <div class="title">흑돌</div>
+          <div class="count">
+            {{ blackCount }}
+          </div>
+        </div>
+        <div class="white_count">
+          <div class="title">백돌</div>
+          <div class="count">
+            {{ whiteCount }}
+          </div>
+        </div>
+      </div>
+      <div class="count_setting_wrap" v-if="!gameStart">
+        <div class="time_setting_title">시간 설정</div>
+        <select v-model="minute" name="" id="" class="dropdown">
           <option>3</option>
           <option>5</option>
           <option>10</option>
@@ -31,8 +54,6 @@
           <option>30</option>
           <option>60</option>
         </select>
-        <div class="black_count">흑돌 : {{ blackCount }}</div>
-        <div class="white_count">백돌 : {{ whiteCount }}</div>
       </div>
       <div v-if="!gameStart" class="setting_wrap">
         <div>오목판 크기 설정</div>
@@ -112,6 +133,8 @@
       const [min, sec] = blackCount.value.split(":").map(Number);
       if (min === 0 && sec === 0) {
         clearInterval(blackInterval);
+        alert(`Player white wins!`);
+        gameEnd.value = true;
       } else {
         let newMin = min;
         let newSec = sec - 1;
@@ -129,6 +152,8 @@
       const [min, sec] = whiteCount.value.split(":").map(Number);
       if (min === 0 && sec === 0) {
         clearInterval(whiteInterval);
+        alert(`Player black wins!`);
+        gameEnd.value = true;
       } else {
         let newMin = min;
         let newSec = sec - 1;
@@ -211,7 +236,10 @@
     const updateCanvasSize = () => {
       if (window.innerWidth < maxSize) {
         canvasSize.value = window.innerWidth;
+      } else if (window.innerWidth < maxSize * 2) {
+        canvasSize.value = window.innerWidth / 2;
       } else {
+        console.log(maxSize);
         canvasSize.value = maxSize;
       }
       b_canvas.width = g_canvas.width = canvasSize.value;
@@ -386,10 +414,9 @@
   .container {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    gap: 10px;
     .board_wrap {
       position: relative;
-
       canvas {
         position: absolute;
         top: 0;
@@ -409,8 +436,87 @@
       }
     }
     .table_wrap {
-      .count_wrap {
-        font-size: 30px;
+      padding: 20px 25px 10px 10px;
+      text-align: center;
+      & > div:not(div:first-child) {
+        margin-top: 50px;
+      }
+      .user_wrap {
+        display: flex;
+        flex-grow: 1;
+        gap: 30px;
+        div {
+          width: 100%;
+          div {
+          }
+          .title {
+            background-color: #333;
+            color: #ccc;
+            border-radius: 2px 2px 0 0;
+            font-size: 24px;
+          }
+          .count {
+            background-color: #eee;
+            border: 1px #9ebdd2 solid;
+            border-radius: 0 0 5px 5px;
+            font-size: 24px;
+          }
+        }
+      }
+      .count_setting_wrap {
+        font-size: 24px;
+        .time_setting_title {
+          font-size: 30px;
+        }
+
+        /* 드롭다운 스타일 */
+        .dropdown {
+          margin-top: 10px;
+          width: 200px;
+          padding: 10px;
+          padding-right: 30px; /* 화살표 공간 확보 */
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          background-color: #fff;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          font-size: 16px;
+          color: #333;
+          position: relative;
+          background-color: #fff;
+          &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            width: 0;
+            height: 0;
+            border: 5px solid transparent;
+            border-top-color: #333;
+            pointer-events: none;
+            transform: translateY(-50%);
+          }
+
+          /* 드롭다운 포커스 및 호버 스타일 */
+          &:focus,
+          &:hover {
+            border-color: #888;
+          }
+        }
+      }
+      .setting_wrap {
+        font-size: 24px;
+        & div:first-child {
+          margin-bottom: 20px;
+          font-size: 30px;
+        }
+        label {
+          margin-right: 6px;
+          & ~ input {
+            margin-right: 10px;
+          }
+        }
       }
       .btn_wrap {
         button {
@@ -420,6 +526,9 @@
           font-size: 20px;
           width: 100px;
           height: 60px;
+          &:first-child {
+            margin-right: 20px;
+          }
           &.disabled {
             background-color: #888;
             pointer-events: none;
