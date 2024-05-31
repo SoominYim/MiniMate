@@ -447,8 +447,6 @@
         gap: 30px;
         div {
           width: 100%;
-          div {
-          }
           .title {
             background-color: #333;
             color: #ccc;
